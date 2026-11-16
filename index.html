@@ -52,13 +52,15 @@ body.bugon #bug{display:flex}
 #bug .ser{background:rgba(12,14,22,.88);padding:0 34px;display:flex;align-items:center;font-size:48px;font-weight:600;padding-top:4px}
 #bug .ser b{color:rgb(222,176,64);font-weight:700;margin-left:22px}
 #bug img{height:72px;width:72px;border-radius:12px;object-fit:cover;background:#fff;margin:0 10px}
-/* glass style */
-body.glass #batside{background:rgba(12,14,22,.80);box-shadow:inset 0 10px 0 var(--batc)}
-body.glass #bowlside{background:rgba(12,14,22,.80)!important;box-shadow:inset 0 10px 0 var(--bowlc)}
-body.glass #tgt{background:rgba(12,14,22,.80);box-shadow:inset 0 10px 0 rgb(222,176,64)}
-body.glass #tlab,body.glass #tval{color:rgb(240,196,60)!important}
-body.glass #ticker{background:rgba(6,8,14,.90)!important}
-body.glass #shadow{background:transparent;box-shadow:0 0 40px 6px rgba(0,0,0,.35)}
+/* glass style (see-through) */
+body.glass #batside{background:linear-gradient(90deg,rgba(8,10,18,.55),rgba(8,10,18,.40));box-shadow:inset 0 10px 0 var(--batc)}
+body.glass #bowlside{background:linear-gradient(90deg,rgba(8,10,18,.40),rgba(8,10,18,.55))!important;box-shadow:inset 0 10px 0 var(--bowlc)}
+body.glass #tgt{background:rgba(8,10,18,.50);box-shadow:inset 0 10px 0 rgb(222,176,64)}
+body.glass #tlab,body.glass #tval{color:rgb(246,200,60)!important}
+body.glass #ticker{background:rgba(6,8,14,.62)!important}
+body.glass #shadow{background:transparent;box-shadow:none}
+body.glass #bar .t{text-shadow:0 3px 10px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.9)}
+body.glass #bug .ser{background:rgba(8,10,18,.55);text-shadow:0 3px 10px rgba(0,0,0,.85)}
 /* compact style */
 #cbar{position:absolute;left:110px;top:1960px;width:3620px;height:132px;display:none;align-items:stretch;font-weight:700;box-shadow:0 8px 28px rgba(0,0,0,.45);opacity:0;transition:opacity .5s}
 #cbar.on{opacity:1}
@@ -124,9 +126,9 @@ var POLL=Math.max(2,Number(Q.get("poll")||4))*1000;
 var TEST=(Q.get("test")||"").toLowerCase();       // four | six | wicket | all
 var HOLD={FOUR:3000,SIX:3000,WICKET:5000};
 var $=function(id){return document.getElementById(id)};
-var STYLE=(Q.get("style")||"tv").toLowerCase();
+var STYLE=(Q.get("style")||"glass").toLowerCase();
 document.body.classList.add(STYLE==="glass"?"glass":STYLE==="compact"?"compact":"tv");
-if(Q.get("bug")==="1")document.body.classList.add("bugon");
+if(Q.get("bug")!=="0")document.body.classList.add("bugon");
 var LOGO=Q.get("logos")!=="0";
 /* ---------- scaling: the 3840x2160 stage fits the page ---------- */
 function fit(){var s=Math.min(innerWidth/3840,innerHeight/2160);var st=$("stage");st.style.transform="scale("+s+")";st.style.left=((innerWidth-3840*s)/2)+"px";st.style.top=((innerHeight-2160*s))+"px";}
@@ -224,7 +226,7 @@ text("score",s.runs+"-"+s.wk);text("inn",s.inn2?"INN 2":"INN 1");text("ovs","OVE
 setLogo($("batlogo"),s.batLogo,s.batCode||s.bat.slice(0,3),rgb(bt.c),rgb(bt.acc));
 setLogo($("bowllogo"),s.bowlLogo,s.bowlCode||s.bowl.slice(0,3),"#fff",rgb(bw.c));
 $("bar").style.setProperty("--batc",rgb(bt.c));$("bar").style.setProperty("--bowlc",rgb(bw.b1));
-var sr=s.series?esc(s.series):"";var serh=sr+'<b>'+esc(s.batCode||s.bat)+' v '+esc(s.bowlCode||s.bowl)+'</b>';if($("ser").innerHTML!==serh)$("ser").innerHTML=serh;
+var sr=s.series?esc(s.series):"";var serh=sr+'<b>'+esc(s.bat||s.batCode)+' v '+esc(s.bowl||s.bowlCode)+'</b>';if($("ser").innerHTML!==serh)$("ser").innerHTML=serh;
 // batters
 var h="";s.batters.slice(0,2).forEach(function(p,i){var bx=920+i*560;
 h+='<div class="div" style="left:'+(bx-30)+'px"></div>';
