@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TV Scorebug</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=block" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:transparent;overflow:hidden;width:100%;height:100%}
+body.bgimg{background:#000 center/cover no-repeat}
+#stage{position:absolute;left:0;top:0;width:3840px;height:2160px;transform-origin:0 0;font-family:"Barlow Condensed","Arial Narrow",sans-serif;color:#fff}
+.abs{position:absolute}
+.t{position:absolute;white-space:nowrap;line-height:1}
+/* bar (3840 canvas, bar strip top = 1840) */
+#bar{position:absolute;left:0;top:1840px;width:3840px;height:310px;opacity:0;transition:opacity .5s}
+#bar.on{opacity:1}
+#shadow{left:110px;top:20px;width:3620px;height:242px;box-shadow:0 0 34px 10px rgba(0,0,0,.45);background:rgba(0,0,0,.25)}
+#ticker{left:110px;top:200px;width:3620px;height:62px}
+#batside{left:110px;top:20px;width:1900px;height:180px;background:linear-gradient(90deg,rgb(30,30,34),rgb(66,56,46));clip-path:polygon(0 0,100% 0,calc(100% - 34px) 100%,0 100%)}
+#tgt{left:1982px;top:20px;width:362px;height:180px;background:linear-gradient(90deg,rgb(246,196,40),rgb(236,176,30));clip-path:polygon(34px 0,100% 0,calc(100% - 34px) 100%,0 100%)}
+#bowlside{left:2316px;top:20px;width:1414px;height:180px;clip-path:polygon(34px 0,100% 0,100% 100%,0 100%)}
+.div{position:absolute;width:3px;height:152px;top:34px;background:rgba(255,255,255,.27);transform:skewX(-12.5deg);transform-origin:top}
+.badge{position:absolute;top:58px;width:160px;height:104px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:60px;padding-top:4px;box-sizing:border-box}
+.ball{position:absolute;top:76px;width:76px;height:76px;border-radius:50%;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:46px;color:rgb(20,24,40);padding-top:4px}
+.ball.empty{border:5px solid rgba(255,255,255,.9)}
+.ball.dot{border:5px solid rgba(255,255,255,.9)}
+.ball.dot::after{content:"";width:18px;height:18px;border-radius:50%;background:#fff;margin-top:-4px}
+.ball.long{font-size:34px}
+/* flyer */
+#fly{position:absolute;left:0;top:1300px;width:3840px;height:600px;pointer-events:none}
+.fpart{position:absolute;will-change:transform;transform:translateX(-5000px)}
+#band{left:460px;top:0;width:2920px;height:340px}
+#bandfill{position:absolute;left:0;top:20px;width:2920px;height:300px;clip-path:polygon(120px 0,100% 0,2800px 100%,0 100%)}
+.gold{position:absolute;height:12px;background:rgb(222,176,64)}
+#word{left:0;top:20px;width:3840px;height:300px;display:flex;align-items:center;justify-content:center}
+#wordtxt{font-weight:700;font-size:280px;line-height:1;transform:skewX(-12deg);text-shadow:8px 10px 16px rgba(0,0,0,.6);padding-top:20px}
+#sub{left:0;top:356px;width:3840px;display:flex;justify-content:center}
+#plate{background:rgba(10,14,26,.92);border-radius:18px;padding:16px 60px 18px 60px;position:relative;overflow:hidden}
+#plate::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;background:rgb(222,176,64)}
+#l1{font-weight:700;font-size:76px;line-height:1.05;white-space:pre}
+#l2{font-weight:600;font-size:52px;line-height:1.1;color:rgb(222,176,64);white-space:pre}
+#msg{position:absolute;left:110px;top:60px;font:600 40px "Barlow Condensed",sans-serif;background:rgba(0,0,0,.6);padding:10px 20px;border-radius:10px;display:none}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bar">
+    <div id="shadow" class="abs"></div>
+    <div id="ticker" class="abs"></div>
+    <div id="batside" class="abs"></div>
+    <div id="tgt" class="abs"></div>
+    <div id="bowlside" class="abs"></div>
+    <div class="t" id="score" style="left:170px;top:30px;font-weight:700;font-size:124px"></div>
+    <div class="t" id="inn" style="left:170px;top:148px;font-weight:500;font-size:42px;color:rgb(200,200,205)"></div>
+    <div class="t" id="ovs" style="left:310px;top:144px;font-weight:600;font-size:46px"></div>
+    <div class="div" style="left:670px"></div>
+    <div class="badge" id="batbadge" style="left:700px"></div>
+    <div id="batters"></div>
+    <div class="t" id="tlab" style="left:1982px;width:396px;text-align:center;top:44px;font-weight:600;font-size:46px;color:rgb(30,24,10)"></div>
+    <div class="t" id="tval" style="left:1982px;width:396px;text-align:center;top:98px;font-weight:700;font-size:96px;color:rgb(20,16,6)"></div>
+    <div class="badge" id="bowlbadge" style="left:2386px;background:rgba(255,255,255,.93)"></div>
+    <div class="t" id="bname" style="left:2616px;top:44px;font-weight:600;font-size:50px"></div>
+    <div class="t" id="bfig" style="left:2616px;top:102px;font-weight:700;font-size:92px"></div>
+    <div id="balls"></div>
+    <div class="t" id="tick" style="left:110px;width:3620px;text-align:center;top:212px;font-size:46px"></div>
+  </div>
+  <div id="fly">
+    <div id="band" class="fpart"><div id="bandfill"></div>
+      <div class="gold" style="left:140px;top:6px;width:2600px;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,6px 100%)"></div>
+      <div class="gold" style="left:200px;top:322px;width:2600px;clip-path:polygon(0 0,100% 0,calc(100% - 6px) 100%,6px 100%)"></div>
+    </div>
+    <div id="word" class="fpart"><div id="wordtxt"></div></div>
+    <div id="sub" class="fpart"><div id="plate"><div id="l1"></div><div id="l2"></div></div></div>
+  </div>
+  <div id="msg"></div>
+</div>
+<script>
+(function(){
+"use strict";
+var Q=new URLSearchParams(location.search);
+var CLUB=Q.get("clubId")||"27594", MATCH=Q.get("matchId")||"";
+var POLL=Math.max(2,Number(Q.get("poll")||4))*1000;
+var TEST=(Q.get("test")||"").toLowerCase();       // four | six | wicket | all
+var HOLD={FOUR:3000,SIX:3000,WICKET:5000};
+var $=function(id){return document.getElementById(id)};
+
+/* ---------- scaling: the 3840x2160 stage fits the page ---------- */
+function fit(){var s=Math.min(innerWidth/3840,innerHeight/2160);var st=$("stage");st.style.transform="scale("+s+")";st.style.left=((innerWidth-3840*s)/2)+"px";st.style.top=((innerHeight-2160*s))+"px";}
+addEventListener("resize",fit);fit();
+if(Q.get("bg")){document.body.classList.add("bgimg");document.body.style.backgroundImage="url("+Q.get("bg")+")";}
+
+/* ---------- team colours ---------- */
+var KNOWN={
+ RVN:{c:[122,16,32],acc:[222,176,64],b0:[96,10,26],b1:[150,24,44]},
+ REV:{c:[122,16,32],acc:[222,176,64],b0:[96,10,26],b1:[150,24,44]},
+ ELK:{c:[24,52,104],acc:[242,194,48],b0:[20,56,170],b1:[44,96,226]}
+};
+var PAL=[
+ {c:[24,52,104],acc:[242,194,48],b0:[20,56,170],b1:[44,96,226]},
+ {c:[14,92,60],acc:[240,214,90],b0:[10,84,52],b1:[26,140,88]},
+ {c:[70,30,120],acc:[250,200,80],b0:[60,24,120],b1:[110,56,190]},
+ {c:[170,70,10],acc:[255,230,150],b0:[150,60,10],b1:[220,110,30]},
+ {c:[10,90,120],acc:[250,220,90],b0:[8,80,120],b1:[20,140,190]},
+ {c:[40,40,48],acc:[230,190,70],b0:[38,40,52],b1:[80,84,100]}
+];
+function team(code,name){code=(code||"").toUpperCase();if(KNOWN[code])return KNOWN[code];var h=0,s=(name||code);for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return PAL[h%PAL.length];}
+function rgb(a,m){m=m||1;return "rgb("+a.map(function(x){return Math.round(x*m)}).join(",")+")";}
+
+/* ---------- helpers ---------- */
+function num(x){var n=parseFloat(x);return isFinite(n)?n:0;}
+function strip(h){var d=document.createElement("div");d.innerHTML=h||"";return (d.textContent||"").replace(/\s+/g," ").trim();}
+function how(h){return up(h).replace(/ B /g,"  B ").replace(/^(C|ST|LBW|RUN OUT) /,"$1 ");}
+function up(s){return (s||"").toUpperCase();}
+function ballsLeft(rem){rem=String(rem||"0");var p=rem.split(".");return num(p[0])*6+num(p[1]||0);}
+function text(id,v){var e=$(id);if(e.textContent!==v)e.textContent=v;}
+
+/* ---------- parse the CricClubs feed into a simple state ---------- */
+function parse(j){
+  var v=j.values||{};var inn2=String(v.isSecondInningsStarted)==="true";
+  var bat=inn2?{n:v.t2Name,c:v.t2Code}:{n:v.t1Name,c:v.t1Code}, bowl=inn2?{n:v.t1Name,c:v.t1Code}:{n:v.t2Name,c:v.t2Code};
+  var s={inn2:inn2,ended:String(v.isMatchEnded)==="1",
+    bat:up(bat.n),batCode:up(bat.c),bowl:up(bowl.n),bowlCode:up(bowl.c),
+    runs:num(inn2?v.t2Total:v.t1Total),wk:num(inn2?v.t2Wickets:v.t1Wickets),ov:String((inn2?v.t2Overs:v.t1Overs)||"0"),
+    target:num(v.revisedTarget)>0?num(v.revisedTarget):num(v.t1Total)+1,need:num(v.requiredRuns),bl:ballsLeft(v.remainingOvers),
+    rrr:String(v.RRR||""),crr:String(v.runrate||v.t1RR||""),result:up(v.result||""),
+    batters:[],bowler:null,balls:(j.balls||[]).map(String),
+    lastOut:{id:String(v.lastOutID||""),name:v.lastOutName||"",r:v.lastOutRuns,b:v.lastOutBalls,how:strip(v.lastOutString)}};
+  [1,2].forEach(function(i){var n=v["batsman"+i+"Name"];if(!n)return;
+    s.batters.push({id:String(v["batsman"+i+"ID"]||n),name:n,r:num(v["batsman"+i+"Runs"]),b:num(v["batsman"+i+"Balls"]),
+      f:num(v["batsman"+i+"Fours"]),x:num(v["batsman"+i+"Sixers"]),out:String(v["batsman"+i+"IsOut"])==="1"});});
+  if(v.bowlerName)s.bowler={name:v.bowlerName,o:String(v.bowlerOvers||"0"),w:num(v.bowlerWickets),r:num(v.bowlerRuns)};
+  return s;
+}
+
+/* ---------- draw the bar ---------- */
+var striker=null;
+function draw(s){
+  var bt=team(s.batCode,s.bat), bw=team(s.bowlCode,s.bowl);
+  $("ticker").style.background="linear-gradient(90deg,"+rgb(bw.b0,.8)+","+rgb(bw.b1)+")";
+  $("bowlside").style.background="linear-gradient(90deg,"+rgb(bw.b0)+","+rgb(bw.b1)+")";
+  text("score",s.runs+"-"+s.wk);text("inn",s.inn2?"INN 2":"INN 1");text("ovs","OVERS "+s.ov);
+  var bb=$("batbadge");bb.style.background=rgb(bt.c);bb.style.color=rgb(bt.acc);text("batbadge",s.batCode||s.bat.slice(0,3));
+  var ob=$("bowlbadge");ob.style.color=rgb(bw.c);text("bowlbadge",s.bowlCode||s.bowl.slice(0,3));
+  // batters
+  var h="";s.batters.slice(0,2).forEach(function(p,i){var bx=920+i*560;
+    h+='<div class="div" style="left:'+(bx-30)+'px"></div>';
+    h+='<div class="t" style="left:'+bx+'px;width:520px;text-align:center;top:40px;font-weight:600;font-size:50px">'+(striker===p.id?'<span style="color:rgb(120,200,255);font-weight:700;font-size:56px;margin-right:10px">&rsaquo;</span>':'')+esc(up(p.name))+'</div>';
+    h+='<div class="t" style="left:'+bx+'px;width:520px;text-align:center;top:96px"><span style="font-weight:700;font-size:92px">'+p.r+'</span><span style="font-weight:500;font-size:52px;color:rgb(215,215,220);margin-left:18px">'+p.b+'</span></div>';});
+  if($("batters").innerHTML!==h)$("batters").innerHTML=h;
+  if(s.inn2){text("tlab","TARGET");text("tval",String(s.target));}else{text("tlab","RUN RATE");text("tval",s.crr||"0.00");}
+  if(s.bowler){text("bname",up(s.bowler.name));$("bfig").innerHTML=s.bowler.w+"-"+s.bowler.r+'<span style="font-weight:500;font-size:52px;color:rgb(215,225,245);margin-left:20px">'+esc(s.bowler.o)+'</span>';}
+  // this over's balls
+  var ov=s.balls, legal=ov.filter(function(b){return !/wd|nb/i.test(b)}).length, slots=ov.concat(new Array(Math.max(0,6-legal)).fill(null)).slice(0,8);
+  var start=3650-(slots.length-1)*98, bh="";
+  slots.forEach(function(v,i){var x=start+i*98-38, cls="ball", sty="left:"+x+"px;", t="";
+    if(v===null){cls+=" empty";}
+    else if(v==="."||v==="0"){cls+=" dot";}
+    else{var lv=v.toLowerCase(), col="rgb(225,228,236)", fg="rgb(20,24,40)";
+      if(lv==="w"||/^w$/.test(lv)||lv.indexOf("w")===0&&lv.indexOf("wd")<0){col="rgb(225,35,50)";fg="#fff";t="W";}
+      else if(/wd/.test(lv)){col="rgb(246,196,40)";}
+      else if(/nb/.test(lv)){col="rgb(246,150,40)";}
+      else if(lv==="4"||lv==="6"){col="#fff";}
+      if(!t)t=v; if(t.length>1)cls+=" long"; sty+="background:"+col+";color:"+fg+";";}
+    bh+='<div class="'+cls+'" style="'+sty+'">'+esc(t)+'</div>';});
+  if($("balls").innerHTML!==bh)$("balls").innerHTML=bh;
+  // ticker
+  var tk;
+  if(s.ended&&s.result)tk=s.result.replace(" WON ","  WON ");
+  else if(s.inn2)tk=s.bat+"  NEED "+s.need+" RUNS FROM "+s.bl+" BALLS  ·  REQUIRED RATE "+s.rrr;
+  else tk=s.bat+" v "+s.bowl+"  ·  FIRST INNINGS  ·  RUN RATE "+(s.crr||"0.00");
+  var k=tk.indexOf("  "), head=k>0?tk.slice(0,k):tk, rest=k>0?tk.slice(k+2):"";
+  $("tick").innerHTML='<span style="font-weight:700">'+esc(head)+'</span><span style="font-weight:500;color:rgb(235,238,250);margin-left:18px">'+esc(rest)+'</span>';
+  $("bar").classList.add("on");
+}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]});}
+
+/* ---------- flyers ---------- */
+var FLY={FOUR:[[30,110,230],[10,34,92]],SIX:[[140,60,230],[70,16,70]],WICKET:[[225,35,50],[90,10,20]]};
+var queue=[],busy=false;
+function flyer(kind,l1,l2){queue.push([kind,l1,l2]);if(!busy)next();}
+function next(){
+  var e=queue.shift();if(!e){busy=false;return;}busy=true;
+  var kind=e[0],c1=FLY[kind][0],c2=FLY[kind][1];
+  var z="rgba("+c2.join(",")+",0)";
+  $("bandfill").style.background="linear-gradient(90deg,"+z+" 0%,"+rgb(c2)+" 12%,"+rgb(c1)+" 50%,"+rgb(c2)+" 88%,"+z+" 100%)";
+  $("wordtxt").textContent=kind;$("l1").textContent=e[1];$("l2").textContent=e[2]||"";$("l2").style.display=e[2]?"block":"none";
+  var parts=[["band",0,-1],["word",120,1],["sub",300,-1]], hold=HOLD[kind];
+  parts.forEach(function(p){var el=$(p[0]);el.style.transition="none";el.style.transform="translateX("+(p[2]*4400)+"px)";});
+  void document.body.offsetWidth;
+  parts.forEach(function(p){var el=$(p[0]);setTimeout(function(){el.style.transition="transform 420ms cubic-bezier(.22,1,.36,1)";el.style.transform="translateX(0)";},p[1]);});
+  setTimeout(function(){parts.forEach(function(p){var el=$(p[0]);el.style.transition="transform 350ms cubic-bezier(.55,0,1,.45)";el.style.transform="translateX("+(-p[2]*4400)+"px)";});},hold+250);
+  setTimeout(next,hold+250+450);
+}
+window.__flyer=flyer;
+
+/* ---------- detect events between two readings ---------- */
+function detect(p,s){
+  if(!p||p.inn2!==s.inn2)return;
+  var byId={};p.batters.forEach(function(b){byId[b.id]=b});
+  s.batters.forEach(function(b){var o=byId[b.id];if(o&&b.b!==o.b)striker=b.id;});
+  var line2=s.bat+" "+s.runs+"/"+s.wk+"  ·  "+s.ov+" OV";
+  s.batters.forEach(function(b){var o=byId[b.id];if(!o)return;
+    var nm=up(b.name)+"   "+b.r+(b.out?"":"*")+" ("+b.b+")";
+    for(var i=o.x;i<b.x;i++)flyer("SIX",nm,line2);
+    for(var j=o.f;j<b.f;j++)flyer("FOUR",nm,line2);});
+  if(s.wk>p.wk){var lo=s.lastOut;flyer("WICKET",up(lo.name)+"   "+lo.r+" ("+lo.b+")",how(lo.how));}
+}
+
+/* ---------- polling ---------- */
+var prev=null,fails=0;
+function poll(){
+  if(!MATCH){showMsg("Add ?matchId=NNNN to the link");return;}
+  var u="https://cricclubs.com/liveScoreOverlayData.do?clubId="+encodeURIComponent(CLUB)+"&matchId="+encodeURIComponent(MATCH)+"&_="+Date.now();
+  fetch(u,{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
+    fails=0;showMsg("");var s=parse(j);
+    if(!prev&&!striker&&s.batters[0])striker=s.batters[0].id;
+    detect(prev,s);draw(s);prev=s;
+    if(TEST){runTest(s);TEST="";}
+  }).catch(function(){fails++;if(fails>=3&&!prev)showMsg("Waiting for CricClubs match "+MATCH+"…");})
+  .then(function(){setTimeout(poll,POLL)});
+}
+function showMsg(m){var e=$("msg");e.textContent=m;e.style.display=m?"block":"none";}
+
+/* ---------- test mode: fires sample flyers with this match's real names ---------- */
+function runTest(s){
+  var b=s.batters[0]||{name:"BATTER",r:20,b:15},line2=s.bat+" "+s.runs+"/"+s.wk+"  ·  "+s.ov+" OV";
+  var nm=up(b.name)+"   "+b.r+"* ("+b.b+")";
+  var lo=s.lastOut, w=["WICKET",up(lo.name||"BATTER")+"   "+(lo.r||0)+" ("+(lo.b||0)+")",how(lo.how||"")];
+  var list=TEST==="four"?[["FOUR",nm,line2]]:TEST==="six"?[["SIX",nm,line2]]:TEST==="wicket"?[w]:[["FOUR",nm,line2],["SIX",nm,line2],w];
+  var loop=Q.get("loop")==="1";
+  (function go(){list.forEach(function(x){flyer(x[0],x[1],x[2])});if(loop)setTimeout(go,16000);})();
+}
+window.__state=function(){return prev};
+poll();
+})();
+</script>
+</body>
+</html>
