@@ -166,8 +166,8 @@ if(lv==="w"||(lv.indexOf("w")===0&&lv.indexOf("wd")<0)){col="rgb(225,35,50)";fg=
 else if(/wd/.test(lv)){col="rgb(246,196,40)";}
 else if(/nb/.test(lv)){col="rgb(246,140,30)";fg="#fff";}
 else if(/lb|b$/.test(lv)){col="rgb(160,170,190)";}
-else if(lv==="4"){col="rgb(30,120,240)";fg="#fff";sty+="box-shadow:0 0 0 4px #fff;";}
-else if(lv==="6"){col="rgb(150,60,235)";fg="#fff";sty+="box-shadow:0 0 0 4px #fff;";}
+else if(lv==="4"){col="rgb(22,176,92)";fg="#fff";sty+="box-shadow:0 0 0 4px #fff;";}
+else if(lv==="6"){col="rgb(206,46,190)";fg="#fff";sty+="box-shadow:0 0 0 4px #fff;";}
 if(!t)t=v;if(t.length>1)cls+=" long";sty+="background:"+col+";color:"+fg+";";}
 return '<div class="'+cls+'" style="'+sty+'">'+esc(t)+'</div>';}
 function ballsLeft(rem){rem=String(rem||"0");var p=rem.split(".");return num(p[0])*6+num(p[1]||0);}
