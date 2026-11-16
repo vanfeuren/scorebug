@@ -43,6 +43,7 @@ body.bgimg{background:#000 center/cover no-repeat}
 .logo{position:absolute;top:44px;width:132px;height:132px;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.85),0 6px 14px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:54px;padding-top:4px;box-sizing:border-box}
 .logo img{width:100%;height:100%;object-fit:cover;display:block}
 #tick{transition:opacity .45s}
+#balltray{position:absolute;top:66px;height:96px;border-radius:48px;background:rgba(6,8,14,.62);box-shadow:inset 0 0 0 2px rgba(255,255,255,.12)}
 /* LIVE bug */
 #bug{position:absolute;left:110px;top:90px;display:none;align-items:stretch;height:96px;font-weight:700}
 body.bugon #bug{display:flex}
@@ -101,6 +102,7 @@ body.compact #fly{top:1360px}
 <div class="logo" id="bowllogo" style="left:2400px"></div>
 <div class="t" id="bname" style="left:2616px;top:44px;font-weight:600;font-size:50px"></div>
 <div class="t" id="bfig" style="left:2616px;top:102px;font-weight:700;font-size:92px"></div>
+<div id="balltray"></div>
 <div id="balls"></div>
 <div class="t" id="tick" style="left:110px;width:3620px;text-align:center;top:212px;font-size:46px"></div>
 </div>
@@ -141,13 +143,14 @@ ELK:{c:[24,52,104],acc:[242,194,48],b0:[20,56,170],b1:[44,96,226]}
 };
 var PAL=[
 {c:[24,52,104],acc:[242,194,48],b0:[20,56,170],b1:[44,96,226]},
-{c:[14,92,60],acc:[240,214,90],b0:[10,84,52],b1:[26,140,88]},
-{c:[70,30,120],acc:[250,200,80],b0:[60,24,120],b1:[110,56,190]},
-{c:[170,70,10],acc:[255,230,150],b0:[150,60,10],b1:[220,110,30]},
-{c:[10,90,120],acc:[250,220,90],b0:[8,80,120],b1:[20,140,190]},
-{c:[40,40,48],acc:[230,190,70],b0:[38,40,52],b1:[80,84,100]}
+{c:[70,30,120],acc:[250,200,80],b0:[60,24,120],b1:[104,52,176]},
+{c:[10,90,120],acc:[250,220,90],b0:[8,80,120],b1:[20,130,175]},
+{c:[40,40,48],acc:[230,190,70],b0:[38,40,52],b1:[78,82,98]},
+{c:[92,56,24],acc:[250,214,140],b0:[84,50,20],b1:[132,82,36]}
 ];
 function team(code,name){code=(code||"").toUpperCase();if(KNOWN[code])return KNOWN[code];var h=0,s=(name||code);for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return PAL[h%PAL.length];}
+function cdist(a,b){return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])+Math.abs(a[2]-b[2]);}
+function pair(bt,bw){if(cdist(bt.c,bw.c)>=120)return bw;for(var i=0;i<PAL.length;i++){if(cdist(bt.c,PAL[i].c)>=120)return PAL[i];}return bw;}
 function rgb(a,m){m=m||1;return "rgb("+a.map(function(x){return Math.round(x*m)}).join(",")+")";}
 /* ---------- helpers ---------- */
 function num(x){var n=parseFloat(x);return isFinite(n)?n:0;}
@@ -210,7 +213,7 @@ if($("cbat").innerHTML!==bh)$("cbat").innerHTML=bh;
 $("cbowl").style.background="linear-gradient(90deg,"+rgb(bw.b0)+","+rgb(bw.b1)+")";
 var wh=s.bowler?esc(up(s.bowler.name))+'<span class="f">'+s.bowler.w+'-'+s.bowler.r+'</span><span style="font-weight:500;color:rgb(215,225,245);font-size:44px">'+esc(s.bowler.o)+'</span>':"";
 if($("cbowl").innerHTML!==wh)$("cbowl").innerHTML=wh;
-$("cballs").style.background="linear-gradient(90deg,"+rgb(bw.b1)+","+rgb(bw.b1,.85)+")";
+$("cballs").style.background="rgb(14,16,24)";
 var ov=s.balls,legal=ov.filter(function(b){return !/wd|nb/i.test(b)}).length,sl=ov.concat(new Array(Math.max(0,6-legal)).fill(null)).slice(0,8),ch="";
 sl.forEach(function(v){ch+=ballHtml(v,"");});if($("cballs").innerHTML!==ch)$("cballs").innerHTML=ch;
 var eq=s.ended&&s.result?s.result:s.inn2?"NEED "+s.need+" OFF "+s.bl:"RR "+(s.crr||"0.00");
@@ -218,7 +221,7 @@ text("ceq",eq);$("cbar").classList.add("on");}
 /* ---------- draw the bar ---------- */
 var striker=null;
 function draw(s){
-var bt=team(s.batCode,s.bat), bw=team(s.bowlCode,s.bowl);
+var bt=team(s.batCode,s.bat), bw=pair(bt,team(s.bowlCode,s.bowl));
 $("ticker").style.background="linear-gradient(90deg,"+rgb(bw.b0,.8)+","+rgb(bw.b1)+")";
 $("bowlside").style.background="linear-gradient(90deg,"+rgb(bw.b0)+","+rgb(bw.b1)+")";
 text("score",s.runs+"-"+s.wk);text("inn",s.inn2?"INN 2":"INN 1");text("ovs","OVERS "+s.ov);
@@ -237,6 +240,7 @@ if(s.bowler){text("bname",up(s.bowler.name));$("bfig").innerHTML=s.bowler.w+"-"+
 // this over's balls
 var ov=s.balls, legal=ov.filter(function(b){return !/wd|nb/i.test(b)}).length, slots=ov.concat(new Array(Math.max(0,6-legal)).fill(null)).slice(0,8);
 var start=3650-(slots.length-1)*98, bh="";
+var tr=$("balltray");tr.style.left=(start-38-14)+"px";tr.style.width=((slots.length-1)*98+76+28)+"px";
 slots.forEach(function(v,i){bh+=ballHtml(v,"left:"+(start+i*98-38)+"px;");});
 if($("balls").innerHTML!==bh)$("balls").innerHTML=bh;
 // ticker messages (rotate)
