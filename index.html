@@ -987,7 +987,7 @@ function cards(s){lastS=s;var ph=phase(s);document.body.classList.toggle("pre",p
 if(ph!==curPh){curPh=ph;rotI=0;clearInterval(cdT);clearTimeout(rotT);if(ph==="live"){$("fs").classList.remove("on");document.body.classList.remove("fson");}else if(ph==="pre"||ph==="show")rot();else (function w(){if(busy||queue.length){rotT=setTimeout(w,500);return;}rotT=setTimeout(rot,1500);})();
 if(ph==="pre"||ph==="show")cdT=setInterval(function(){var e=document.getElementById("cd");if(e)e.textContent=cdText();},1000);}}
 /* ---- other matches this weekend (Div A and B only) ---- */
-var AG={m:{},done:{}},agOn=Q.get("league")!=="0"&&(!DEMOM||Q.get("demo")==="tv"),DIVS=(Q.get("divs")||"A,B").toUpperCase().split(",");
+var AG={m:{},done:{}},agOn=Q.get("league")!=="0"&&(!DEMOM||Q.get("demo")==="tv"),DIVS=(Q.get("divs")||"A").toUpperCase().split(",");
 var AGK="tvsb_ag_"+CLUB;try{var _ag=JSON.parse(localStorage.getItem(AGK)||"{}");for(var _k in _ag)if(Date.now()-_ag[_k].ts<60*3600000)AG.m[_k]=_ag[_k];}catch(e){}
 function agSave(){if(DEMOM)return;try{localStorage.setItem(AGK,JSON.stringify(AG.m));}catch(e){}}
 function feedU(id){return "https://cricclubs.com/liveScoreOverlayData.do?clubId="+encodeURIComponent(CLUB)+"&matchId="+id+"&_="+Date.now();}
@@ -998,16 +998,31 @@ var ended=String(v.isMatchEnded)==="1",in2=String(v.isSecondInningsStarted)==="t
 var old=AG.m[id],it={id:+id,div:div,a:up(v.t1Name||v.t1Code),b:up(v.t2Name||v.t2Code),s1:num(v.t1Total)+"/"+num(v.t1Wickets)+" ("+(v.t1Overs||"0")+")",s2:in2?num(v.t2Total)+"/"+num(v.t2Wickets)+" ("+(v.t2Overs||"0")+")":"",res:up(v.result||v.shortResult||""),ended:ended,ts:Date.now(),live:!ended&&st};
 it.seen=(old&&old.seen)||it.live;
 if(listed){if(st)AG.m[id]=it;if(ended)AG.done[id]=1;}
-else if(it.live||(ended&&it.seen&&old))AG.m[id]=it;
-if(ended&&!listed&&!old)AG.done[id]=1;agSave();}).catch(function(){});}
+else if(it.live||(ended&&it.seen&&old)||(ended&&fxFind(it.a,it.b)))AG.m[id]=it;
+if(ended&&!listed&&!AG.m[id])AG.done[id]=1;agSave();}).catch(function(){});}
 function agRun(ids,listed){var q=ids.filter(function(id){return String(id)!==String(MATCH)&&!AG.done[id]}),act=0;function go(){while(act<4&&q.length){act++;agOne(q.shift(),listed).then(function(){act--;go();});}}go();}
 function agScan(){if(!agOn||!/^\d+$/.test(MATCH))return;var L=wkList();if(L){agRun(L,true);return;}
 var M=+MATCH,ids=[];for(var i=M-30;i<=M+30;i++)if(i>0)ids.push(String(i));agRun(ids,false);}
 if(agOn){setTimeout(agScan,DEMOM?2500:6000);setInterval(agScan,90000);}
 var myDiv="";
-function agMsg(){var a=[],L=wkList();for(var id in AG.m){if(String(id)===String(MATCH))continue;if(L&&L.indexOf(String(id))<0)continue;a.push(AG.m[id]);}if(!a.length)return "";
-a.sort(function(x,y){return (x.ended?1:0)-(y.ended?1:0)||x.div.localeCompare(y.div)||x.id-y.id});
-return "OTHER MATCHES THIS WEEKEND  "+a.map(function(x){return "DIV "+x.div+":  "+x.a+" "+x.s1+"  v  "+x.b+(x.s2?" "+x.s2:"")+(x.ended?(x.res?"  —  "+x.res:"  —  FINISHED"):"  ·  LIVE")}).join("      •      ");}
+function tnorm(x){return String(x||"").toUpperCase().replace(/[^A-Z0-9]/g,"");}
+function fxTime(f){try{var d=f.d.split("-"),m=/(\d+):(\d+)\s*([AP]M)/i.exec(f.t||"")||[0,12,0,"PM"],h=+m[1]%12+(/p/i.test(m[3])?12:0);return new Date(+d[0],+d[1]-1,+d[2],h,+m[2]).getTime();}catch(e){return 0;}}
+function fxList(){var F=STATS&&Array.isArray(STATS.fixtures)?STATS.fixtures:[],now=Date.now();
+return F.filter(function(f){var ts=fxTime(f);return f&&f.a&&f.b&&DIVS.indexOf(String(f.div||"").toUpperCase())>=0&&(DEMOM||(ts>now-5*3600000&&ts<now+3*86400000));});}
+function fxFind(a,b){var A=tnorm(a),B=tnorm(b),hit=null;fxList().forEach(function(f){var x=tnorm(f.a),y=tnorm(f.b);if((x===A&&y===B)||(x===B&&y===A))hit=f;});return hit;}
+var DAYS=["SUN","MON","TUE","WED","THU","FRI","SAT"];
+function agMsg(){var a=[],L=wkList(),pre=DIVS.length>1;for(var id in AG.m){if(String(id)===String(MATCH))continue;if(L&&L.indexOf(String(id))<0)continue;if(DIVS.indexOf(AG.m[id].div)<0)continue;a.push(AG.m[id]);}
+var seen={},cur=window.__lastS?[tnorm(window.__lastS.bat),tnorm(window.__lastS.bowl)]:[];a.forEach(function(x){seen[tnorm(x.a)+"|"+tnorm(x.b)]=1;seen[tnorm(x.b)+"|"+tnorm(x.a)]=1;});
+var up_=[];try{fxList().forEach(function(f){var k=tnorm(f.a)+"|"+tnorm(f.b);if(seen[k])return;if(cur.indexOf(tnorm(f.a))>=0&&cur.indexOf(tnorm(f.b))>=0)return;var ts=fxTime(f);if(!DEMOM&&ts<Date.now()-90*60000)return;up_.push({div:String(f.div).toUpperCase(),a:up(f.a),b:up(f.b),ts:ts,when:(ts?DAYS[new Date(ts).getDay()]+" ":"")+up(f.t||"")});});}catch(e){}
+if(!a.length&&!up_.length)return "";
+var live=a.filter(function(x){return !x.ended}),done=a.filter(function(x){return x.ended});
+live.sort(function(x,y){return x.div.localeCompare(y.div)||x.id-y.id});done.sort(function(x,y){return x.div.localeCompare(y.div)||x.id-y.id});up_.sort(function(x,y){return x.ts-y.ts});
+function dv(x){return pre?"DIV "+x.div+":  ":"";}
+var parts=live.map(function(x){return dv(x)+x.a+" "+x.s1+"  v  "+x.b+(x.s2?" "+x.s2:"")+"  ·  LIVE";})
+.concat(up_.map(function(x){return dv(x)+x.a+"  v  "+x.b+"  ·  "+x.when;}))
+.concat(done.map(function(x){return dv(x)+x.a+" "+x.s1+"  v  "+x.b+(x.s2?" "+x.s2:"")+(x.res?"  —  "+x.res:"  —  FINISHED");}));
+return "OTHER MATCHES THIS WEEKEND  "+parts.join("      •      ");}
+window.__agMsg=function(){try{return agMsg();}catch(e){return "ERR "+e;}};
 function setDiv(s){var m=/- ([A-Z])\s*$/.exec(s.series||"");myDiv=m?m[1]:"";}
 
 /* ---- celebration cards: milestones 25/50/100 and wicket hauls 3/4/5 (career-card size) ---- */
