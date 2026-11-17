@@ -130,6 +130,7 @@ body.compact #nb{top:1540px}
 #op.on{opacity:1;transform:none}
 #opin .slot{position:absolute;left:0;width:2300px;height:410px}
 body.compact #op{top:1140px}
+#nbin .card.ns,#opin .card.ns{width:1150px}
 #win,#fh{transition:opacity .3s}
 body.flyon #win,body.flyon #fh,body.nbon #win,body.opon #win{opacity:0}
 #msg{position:absolute;left:110px;top:60px;font:600 40px "Barlow Condensed",sans-serif;background:rgba(0,0,0,.6);padding:10px 20px;border-radius:10px;display:none}
@@ -534,7 +535,7 @@ var bat=p?(p.bat||{car:p}):null,bw=p?p.bowl:null,src=bowl?bw:bat;
 var cols=bowl?[["MATCHES","m"],["WICKETS","wkts"],["ECONOMY","econ"],["AVERAGE","avg"],["BEST","bbf"],["4W","w4"],["5W","w5"],["MAIDENS","md"]]:[["MATCHES","m"],["RUNS","runs"],["AVERAGE","avg"],["STRIKE RT","sr"],["BEST","hs"],["25s","c25"],["50s","c50"],["100s","c100"]];
 function row(lbl,o){if(!o)o={};return '<div class="rl">'+esc(lbl)+'</div>'+cols.map(function(c){var x=o[c[1]];return '<div class="v'+(x==null||x===""||x==="-"?' mut':'')+'">'+esc(x==null||x===""?"-":x)+'</div>';}).join("");}
 var rows=src?row("NACL CAREER",src.car)+row(STATS&&STATS.lastName?STATS.lastName:"LAST SEASON",src.last)+row(STATS&&STATS.seasonName?STATS.seasonName:"THIS SEASON",src.sea):"";
-var h='<div class="card"><div class="accent" style="background:'+rgb(t.c)+'"></div>'+photo(d.pic,d.name,220,rgb(t.c),"")+
+var h='<div class="card'+(rows?'':' ns')+'"><div class="accent" style="background:'+rgb(t.c)+'"></div>'+photo(d.pic,d.name,220,rgb(t.c),"")+
 '<div class="tag'+(bowl?' bowl':'')+'">'+(d.tag||(bowl?'NEW BOWLER':'NEW BATTER'))+'</div><div class="nm">'+esc(up(d.name))+'</div>'+
 '<div class="tmr">'+(d.logo?'<div class="lg"><img src="'+esc(d.logo)+'" alt=""></div>':'')+'<div class="tm">'+esc(d.teamName)+'</div></div>'+
 (rows?'<div class="grid"><div></div>'+cols.map(function(c){return '<div class="h">'+c[0]+'</div>'}).join("")+rows+'</div>':'')+'</div>';
@@ -582,10 +583,24 @@ if(s.wk>p.wk){var lo=s.lastOut;flyer("WICKET",up(lo.name)+"   "+lo.r+" ("+lo.b+"
 s.batters.forEach(function(b){if(!byId[b.id]&&b.b===0&&b.r===0)newBatter(s,b);});
 if(s.bowler&&(!p.bowler||norm(p.bowler.name)!==norm(s.bowler.name)))newBowler(s);
 }
+/* ---------- ?team=NAME: wait for this team's match to appear on CricClubs, then switch to it ---------- */
+var FM={other:{},tries:0};
+function findMatch(){try{var raw=String(Q.get("team")),want=raw.toUpperCase().replace(/[^A-Z0-9]/g,"");
+if(!STATS&&FM.tries++<6){setTimeout(findMatch,700);return;}
+var from=+Q.get("after")||(STATS&&+STATS.idFrom)||4700,top=from,ids=[],hits=[];for(var k in FM.other)top=Math.max(top,+k);
+for(var i=from;i<=top+30;i++)if(!FM.other[i])ids.push(i);
+showMsg("Waiting for the "+raw.toUpperCase()+" match to start in CricClubs\u2026");
+var q=ids.slice(),act=0,left=q.length;function one(id){return fetch("https://cricclubs.com/liveScoreOverlayData.do?clubId="+encodeURIComponent(CLUB)+"&matchId="+id+"&_="+Date.now(),{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){var v=j.values||{};if(!v.t1Name&&!v.t2Name)return;
+var a=String(v.t1Name||"").toUpperCase().replace(/[^A-Z0-9]/g,""),b=String(v.t2Name||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+if(a===want||b===want)hits.push({id:id,ended:String(v.isMatchEnded)==="1"});else FM.other[id]=1;}).catch(function(){});}
+function go(){while(act<5&&q.length){act++;one(q.shift()).then(function(){act--;left--;if(left<=0)done();else go();});}}
+function done(){hits.sort(function(x,y){return (x.ended?1:0)-(y.ended?1:0)||y.id-x.id;});
+if(hits.length){var u=new URL(location.href);u.searchParams.set("matchId",String(hits[0].id));location.replace(u.toString());}else setTimeout(findMatch,60000);}
+if(!q.length)done();else go();}catch(e){setTimeout(findMatch,60000);}}
 /* ---------- polling ---------- */
 var prev=null,fails=0;
 function poll(){
-if(!MATCH){showMsg("Add ?matchId=NNNN to the link");return;}
+if(!MATCH){if(Q.get("team")){findMatch();return;}showMsg("Add ?matchId=NNNN to the link");return;}
 var u="https://cricclubs.com/liveScoreOverlayData.do?clubId="+encodeURIComponent(CLUB)+"&matchId="+encodeURIComponent(MATCH)+"&_="+Date.now();
 fetch(u,{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
 fails=0;showMsg("");

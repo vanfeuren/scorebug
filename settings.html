@@ -45,9 +45,10 @@ footer textarea{width:100%;height:58px;background:#0b0d14;color:#cfd4e4;border:1
 </header>
 
 <section>
-<h2>Match<small>Match ID is on the CricClubs app's Info tab</small></h2>
+<h2>Match<small>Give the match ID (CricClubs app, Info tab) or just the team name: with a team name the overlay waits and finds that team's match by itself once scoring starts</small></h2>
 <div class="match">
 <label class="f">Match ID<input id="mid" inputmode="numeric" placeholder="4712"></label>
+<label class="f">or Team<input id="team" placeholder="Lords"></label>
 <label class="f">First ball (HH:MM)<input id="start" placeholder="14:00"></label>
 <label class="f">Home team code<input id="home" placeholder="RVN"></label>
 </div>
@@ -114,13 +115,13 @@ var G=[
 ]}];
 var DEF={};G.forEach(function(g){g.f.forEach(function(x){var d={};if(x.show)d[x.k==="other"?"mode":"on"]=x.show[0][0];if(x.sec!=null)d.sec=x.sec;if(x.loc)d.loc=x.loc[0][0];if(x.every!=null){d.every=x.every;d.speed=x.speed;}DEF[x.k]=d;});});
 DEF.four.loc=DEF.six.loc=DEF.wkt.loc="low";
-var S=JSON.parse(JSON.stringify(DEF)),M={mid:"",start:"",home:""};
+var S=JSON.parse(JSON.stringify(DEF)),M={mid:"",team:"",start:"",home:""};
 function b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
 function b64d(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return decodeURIComponent(escape(atob(s)));}
 function load(){var q=new URLSearchParams(location.search),c=q.get("cfg");
 try{var st=JSON.parse(localStorage.getItem("sbset")||"null");if(st){merge(st.cfg||{});M=st.m||M;}}catch(e){}
 if(c){try{merge(JSON.parse(b64d(c)));}catch(e){}}
-["mid","start","home"].forEach(function(k){if(q.get(k==="mid"?"matchId":k))M[k]=q.get(k==="mid"?"matchId":k);});}
+["mid","team","start","home"].forEach(function(k){if(q.get(k==="mid"?"matchId":k))M[k]=q.get(k==="mid"?"matchId":k);});}
 function merge(o){for(var k in o)if(S[k])for(var f in o[k])S[k][f]=String(o[k][f]);}
 function sel(opts,val){return opts.map(function(o){return '<option value="'+o[0]+'"'+(String(val)===o[0]?" selected":"")+'>'+o[1]+'</option>'}).join("");}
 function build(){var h="";G.forEach(function(g){h+='<section><h2>'+g.t+'<small>'+g.d+'</small></h2>';g.f.forEach(function(x){var v=S[x.k],off=x.show&&(v.on==="0"||v.mode==="off");
@@ -132,19 +133,19 @@ h+='<label class="f">Scroll speed<select data-f="speed">'+sel([["160","Slow"],["
 if(x.loc)h+='<label class="f">Location<select data-f="loc">'+sel(x.loc,v.loc)+'</select></label>';
 h+='</div></div>';});h+='</section>';});
 document.getElementById("groups").innerHTML=h;
-["mid","start","home"].forEach(function(k){document.getElementById(k).value=M[k]||"";});}
+["mid","team","start","home"].forEach(function(k){document.getElementById(k).value=M[k]||"";});}
 function diff(){var o={};for(var k in S){var d={};for(var f in S[k]){if(String(S[k][f])!==String(DEF[k][f])){var v=S[k][f];d[f]=/^-?\d+(\.\d+)?$/.test(v)?+v:v;}}if(Object.keys(d).length)o[k]=d;}return o;}
-function link(demo){var p=new URLSearchParams();p.set("matchId",(M.mid||"").trim()||"4690");if(demo)p.set("demo","tv");
+function link(demo){var p=new URLSearchParams();if(!demo&&!(M.mid||"").trim()&&(M.team||"").trim())p.set("team",M.team.trim());else p.set("matchId",(M.mid||"").trim()||"4690");if(demo)p.set("demo","tv");
 if(M.start&&!demo)p.set("start",M.start.trim());if(M.home&&M.home.trim().toUpperCase()!=="RVN")p.set("home",M.home.trim().toUpperCase());
 var d=diff();if(Object.keys(d).length)p.set("cfg",b64e(JSON.stringify(d)));return BASE+"?"+p.toString();}
-function refresh(){document.getElementById("link").value=(M.mid?"":"(add the match ID) ")+link(false);
+function refresh(){document.getElementById("link").value=(M.mid||M.team?"":"(add the match ID or team) ")+link(false);
 try{localStorage.setItem("sbset",JSON.stringify({cfg:diff(),m:M}));}catch(e){}
 var q=new URLSearchParams();var d=diff();if(Object.keys(d).length)q.set("cfg",b64e(JSON.stringify(d)));history.replaceState(null,"",location.pathname+(q.toString()?"?"+q:""));}
 document.addEventListener("change",function(e){var t=e.target,r=t.closest(".row");if(r&&t.dataset.f){S[r.dataset.k][t.dataset.f]=t.value;if(t.dataset.f==="on"||t.dataset.f==="mode")r.classList.toggle("off",t.value==="0"||t.value==="off");}
 if(t.id)M[t.id]=t.value;refresh();});
 document.addEventListener("input",function(e){var t=e.target;if(t.id&&M.hasOwnProperty(t.id)){M[t.id]=t.value;refresh();}});
 function toast(m){var e=document.getElementById("toast");e.textContent=m;e.style.opacity=1;setTimeout(function(){e.style.opacity=0},1600);}
-document.getElementById("copy").onclick=function(){var l=link(false);if(!M.mid){toast("Add the match ID first");return;}
+document.getElementById("copy").onclick=function(){var l=link(false);if(!M.mid&&!M.team){toast("Add the match ID or team first");return;}
 (navigator.clipboard?navigator.clipboard.writeText(l):Promise.reject()).then(function(){toast("Link copied")},function(){var t=document.getElementById("link");t.value=l;t.select();document.execCommand("copy");toast("Link copied");});};
 document.getElementById("demo").onclick=function(){window.open(link(true),"_blank");};
 document.getElementById("reset").onclick=function(){if(!confirm("Reset every setting to the defaults?"))return;S=JSON.parse(JSON.stringify(DEF));build();refresh();toast("Defaults restored");};
