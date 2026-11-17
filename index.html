@@ -280,6 +280,7 @@ if(!t)t=v;if(t.length>1)cls+=" long";sty+="background:"+col+";color:"+fg+";";}
 return '<div class="'+cls+'" style="'+sty+'">'+esc(t)+'</div>';}
 function ballsLeft(rem){rem=String(rem||"0");var p=rem.split(".");return num(p[0])*6+num(p[1]||0);}
 function text(id,v){var e=$(id);if(e.textContent!==v)e.textContent=v;}
+var HOMEQ=up(Q.get("home")||"RVN,REVENANTS").split(",");function isHome(code,name){return HOMEQ.indexOf(up(code))>=0||HOMEQ.indexOf(up(name))>=0;}
 /* ---------- parse the CricClubs feed into a simple state ---------- */
 function parse(j){
 var v=j.values||{};var inn2=String(v.isSecondInningsStarted)==="true";
@@ -304,6 +305,10 @@ s.t2={n:up(v.t2Name||""),c:up(v.t2Code||""),r:num(v.t2Total),w:num(v.t2Wickets),
 s.mom={name:String(v.manOfTheMatch||"").trim(),pic:picUrl(v.momImagePath)};
 var cp=v.currentPartnershipMap;if(cp&&cp.partnershipTotalRuns!=null)s.partD={r:num(cp.partnershipTotalRuns),b:num(cp.partnershipTotalBalls),p:[1,2].map(function(i){var k="partnershipBatsman"+i;return {name:cp[k+"Name"]||"",pic:picUrl(cp[k+"ProfilePic"]),r:num(cp[k+"ContributionRuns"]),b:num(cp[k+"ContributionBalls"])};})};
 s.lastOut.f=v.lastOutFours;s.lastOut.x=v.lastOUtSixers;s.lastOut.full=((v.lastOutFirstName||"")+" "+(v.lastOutLastName||"")).trim();
+/* photos only for the home team (Viren: Revenants only; change with &home=CODE) */
+if(!isHome(s.batCode,s.bat)){s.batters.forEach(function(b){b.pic="";});s.lastOut.pic="";if(s.partD)s.partD.p.forEach(function(q){q.pic="";});}
+if(s.bowler&&!isHome(s.bowlCode,s.bowl))s.bowler.pic="";
+if(s.mom.name){var mp=findPlayer(s.mom.name);if(!mp||!isHome("",mp.team))s.mom.pic="";}
 return s;
 }
 /* ---------- ticker rotation ---------- */
