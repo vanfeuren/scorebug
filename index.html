@@ -130,6 +130,22 @@ body.compact #nb{top:1540px}
 #op.on{opacity:1;transform:none}
 #opin .slot{position:absolute;left:0;width:2300px;height:410px}
 body.compact #op{top:1140px}
+#wait{position:absolute;left:0;top:1840px;width:3840px;height:310px;display:none}
+body.waiting #wait{display:block}
+#wait>div{position:absolute}
+#wait .wsh{left:110px;top:20px;width:3620px;height:242px;box-shadow:0 0 34px 10px rgba(0,0,0,.45);background:rgba(0,0,0,.25)}
+#wait .wl{left:110px;top:20px;width:1900px;height:180px;background:linear-gradient(90deg,rgb(30,30,34),rgb(66,56,46));clip-path:polygon(0 0,100% 0,calc(100% - 34px) 100%,0 100%);padding:16px 0 0 70px;box-sizing:border-box}
+#wait .wk{font-weight:700;font-size:44px;letter-spacing:4px;color:rgb(246,200,60);display:flex;align-items:center;gap:22px}
+#wait .wdot{width:26px;height:26px;border-radius:50%;background:rgb(225,40,55);animation:wpulse 1.4s ease-in-out infinite}
+@keyframes wpulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(225,40,55,.6)}50%{opacity:.5;box-shadow:0 0 0 14px rgba(225,40,55,0)}}
+#wait .wm{font-weight:700;font-size:92px;line-height:1;margin-top:8px;white-space:nowrap;color:#fff}
+#wait .wg{left:1982px;top:20px;width:362px;height:180px;background:linear-gradient(90deg,rgb(246,196,40),rgb(236,176,30));clip-path:polygon(34px 0,100% 0,calc(100% - 34px) 100%,0 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgb(20,16,6)}
+#wait .wgl{font-weight:700;font-size:46px;letter-spacing:2px}
+#wait .wgv{font-weight:700;font-size:84px;line-height:1;white-space:nowrap}
+#wait .wr{left:2316px;top:20px;width:1414px;height:180px;background:linear-gradient(90deg,rgb(16,46,130),rgb(34,86,196));clip-path:polygon(34px 0,100% 0,100% 100%,0 100%);display:flex;align-items:center;padding:0 60px 0 90px;box-sizing:border-box}
+#wait .wt{font-weight:700;font-size:72px;line-height:1.05;color:#fff;white-space:nowrap;transform-origin:0 50%}
+#wait .wt span{color:rgb(246,200,60);font-size:56px;margin:0 18px}
+#wait .wtk{left:110px;top:200px;width:3620px;height:62px;background:rgb(16,40,110);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:40px;letter-spacing:2px;color:rgb(235,238,250);white-space:nowrap}
 #nbin .card.ns,#opin .card.ns{width:1150px}
 #win,#fh{transition:opacity .3s}
 body.flyon #win,body.flyon #fh,body.nbon #win,body.opon #win{opacity:0}
@@ -305,6 +321,7 @@ body.celon #win,body.celon #fh{opacity:0}
 </div>
 <div id="bug"><div class="live"><i></i>LIVE</div><div class="ser" id="ser"></div></div>
 <div id="cbar"><div class="cteam" id="cteam"></div><div class="cbat" id="cbat"></div><div class="cbowl" id="cbowl"></div><div class="cballs" id="cballs"></div><div class="ceq" id="ceq"></div></div>
+<div id="wait"><div class="wsh"></div><div class="wl"><div class="wk">STARTING SOON<span class="wdot"></span></div><div class="wm">WAITING FOR SCORING TO START</div></div><div class="wg"><div class="wgl">START</div><div class="wgv" id="wtime">SOON</div></div><div class="wr"><div class="wt" id="wteams"></div></div><div class="wtk" id="wtick"></div></div>
 <div id="cel"><div id="celin"></div></div>
 <div id="op"><div id="opin"></div></div>
 <div id="nb"><div id="nbin"></div></div>
@@ -585,11 +602,20 @@ if(s.bowler&&(!p.bowler||norm(p.bowler.name)!==norm(s.bowler.name)))newBowler(s)
 }
 /* ---------- ?team=NAME: wait for this team's match to appear on CricClubs, then switch to it ---------- */
 var FM={other:{},tries:0};
+function showWait(raw,want){try{showMsg("");document.body.classList.add("waiting");var N=function(x){return String(x||"").toUpperCase().replace(/[^A-Z0-9]/g,"");},F=(STATS&&Array.isArray(STATS.fixtures))?STATS.fixtures:[],now=Date.now(),best=null,bt=0;
+F.forEach(function(f){if(N(f.a)!==want&&N(f.b)!==want)return;var d=String(f.d||"").split("-"),m=/(\d+):(\d+)\s*([AP]M)/i.exec(f.t||"")||[0,12,0,"PM"],ts=new Date(+d[0],+d[1]-1,+d[2],+m[1]%12+(/p/i.test(m[3])?12:0),+m[2]).getTime();
+if(ts>now-6*3600000&&(!best||ts<bt)){best=f;bt=ts;}});
+var days=["SUN","MON","TUE","WED","THU","FRI","SAT"],tm=$("wtime"),tw=$("wteams"),tk=$("wtick");
+if(best){var same=new Date(bt).toDateString()===new Date().toDateString();tm.textContent=String(best.t||"").replace(/\s*([AP]M)/i,"").trim()||"SOON";tm.style.fontSize="84px";
+tw.innerHTML=esc(up(best.a))+"<span>v</span>"+esc(up(best.b));
+tk.textContent=[(same?"TODAY":days[new Date(bt).getDay()])+" "+up(best.t||""),best.g?up(best.g):"",best.div?"WINTER 2026-27 \u00b7 DIV "+String(best.div).toUpperCase():"","LIVE SCORES APPEAR AS SOON AS THE SCORER STARTS"].filter(Boolean).join("   \u00b7   ");}
+else{tm.textContent="SOON";tw.textContent=up(raw);tk.textContent="LIVE SCORES APPEAR AS SOON AS THE SCORER STARTS";}
+if(tw.scrollWidth>1270)tw.style.transform="scale("+(1270/tw.scrollWidth)+")";}catch(e){showMsg("Waiting for the "+String(raw).toUpperCase()+" match\u2026");}}
 function findMatch(){try{var raw=String(Q.get("team")),want=raw.toUpperCase().replace(/[^A-Z0-9]/g,"");
 if(!STATS&&FM.tries++<6){setTimeout(findMatch,700);return;}
 var from=+Q.get("after")||(STATS&&+STATS.idFrom)||4700,top=from,ids=[],hits=[];for(var k in FM.other)top=Math.max(top,+k);
 for(var i=from;i<=top+30;i++)if(!FM.other[i])ids.push(i);
-showMsg("Waiting for the "+raw.toUpperCase()+" match to start in CricClubs\u2026");
+showWait(raw,want);
 var q=ids.slice(),act=0,left=q.length;function one(id){return fetch("https://cricclubs.com/liveScoreOverlayData.do?clubId="+encodeURIComponent(CLUB)+"&matchId="+id+"&_="+Date.now(),{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){var v=j.values||{};if(!v.t1Name&&!v.t2Name)return;
 var a=String(v.t1Name||"").toUpperCase().replace(/[^A-Z0-9]/g,""),b=String(v.t2Name||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
 if(a===want||b===want)hits.push({id:id,ended:String(v.isMatchEnded)==="1"});else FM.other[id]=1;}).catch(function(){});}
