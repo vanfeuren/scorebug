@@ -91,10 +91,10 @@ body.compact #bar{display:none} body.compact #cbar{display:flex}
 #cbar .cballs .ball{position:relative;top:0;width:64px;height:64px;font-size:38px}
 #cbar .ceq{background:linear-gradient(90deg,rgb(246,196,40),rgb(236,176,30));color:rgb(20,16,6);padding:0 40px;font-size:54px}
 body.compact #fly{top:1360px}
-#nb{position:absolute;left:110px;top:1420px;width:1860px;height:410px;overflow:hidden;pointer-events:none}
+#nb{position:absolute;left:110px;top:1420px;width:2300px;height:410px;overflow:hidden;pointer-events:none}
 #nbin{position:absolute;left:0;top:410px;width:100%;height:410px;transition:transform .55s cubic-bezier(.22,1,.36,1)}
 #nb.on #nbin{transform:translateY(-410px)}
-#nbin .card{position:absolute;left:0;top:30px;width:1860px;height:370px;background:linear-gradient(90deg,rgba(14,16,26,.96),rgba(30,32,44,.94));border-radius:22px;box-shadow:0 14px 36px rgba(0,0,0,.5);overflow:hidden}
+#nbin .card{position:absolute;left:0;top:30px;width:2300px;height:370px;background:linear-gradient(90deg,rgba(14,16,26,.96),rgba(30,32,44,.94));border-radius:22px;box-shadow:0 14px 36px rgba(0,0,0,.5);overflow:hidden}
 #nbin .accent{position:absolute;left:0;top:0;bottom:0;width:16px}
 #nbin .ph{left:46px;top:75px;box-shadow:0 0 0 6px rgb(222,176,64),0 8px 20px rgba(0,0,0,.45)}
 #nbin .tag{position:absolute;left:300px;top:70px;font-weight:700;font-size:40px;letter-spacing:3px;color:rgb(20,16,6);background:rgb(240,190,40);padding:6px 20px 2px;border-radius:8px}
@@ -104,10 +104,10 @@ body.compact #fly{top:1360px}
 #nbin .lg{width:64px;height:64px;border-radius:10px;overflow:hidden;background:#fff;flex:none}
 #nbin .lg img{width:100%;height:100%;object-fit:cover}
 #nbin .tm{font-weight:600;font-size:40px;color:rgb(200,204,216);white-space:nowrap;padding-top:4px}
-#nbin .grid{position:absolute;left:930px;top:34px;display:grid;grid-template-columns:250px repeat(5,124px);column-gap:8px;row-gap:10px;align-items:center}
+#nbin .grid{position:absolute;left:910px;top:34px;display:grid;grid-template-columns:240px repeat(8,124px);column-gap:8px;row-gap:10px;align-items:center}
 #nbin .grid .h{font-size:28px;font-weight:600;color:rgb(222,176,64);letter-spacing:1px;text-align:center;white-space:nowrap}
 #nbin .grid .rl{font-size:34px;font-weight:700;color:rgb(222,176,64);letter-spacing:1px;white-space:nowrap;padding-top:6px}
-#nbin .grid .v{font-size:58px;font-weight:700;text-align:center;background:rgba(255,255,255,.06);border-radius:12px;padding:12px 0 6px;line-height:1}
+#nbin .grid .v{font-size:54px;font-weight:700;text-align:center;background:rgba(255,255,255,.06);border-radius:12px;padding:12px 0 6px;line-height:1}
 #nbin .grid .v.mut{color:rgb(150,155,170)}
 body.compact #nb{top:1540px}
 #msg{position:absolute;left:110px;top:60px;font:600 40px "Barlow Condensed",sans-serif;background:rgba(0,0,0,.6);padding:10px 20px;border-radius:10px;display:none}
@@ -187,6 +187,7 @@ body.fson #bug{opacity:0}
 <div class="t" id="tlab" style="left:1982px;width:396px;text-align:center;top:44px;font-weight:600;font-size:46px;color:rgb(30,24,10)"></div>
 <div class="t" id="tval" style="left:1982px;width:396px;text-align:center;top:98px;font-weight:700;font-size:96px;color:rgb(20,16,6)"></div>
 <div class="logo" id="bowllogo" style="left:2400px"></div>
+    <div id="bowlph"></div>
 <div class="t" id="bname" style="left:2616px;top:44px;font-weight:600;font-size:50px"></div>
 <div class="t" id="bfig" style="left:2616px;top:102px;font-weight:700;font-size:92px"></div>
 <div id="balltray"></div>
@@ -361,6 +362,7 @@ h+='<div class="t" style="left:'+tx+'px;width:'+tw+'px;text-align:center;top:'+(
 h+='<div class="t" style="left:'+tx+'px;width:'+tw+'px;text-align:center;top:96px"><span style="font-weight:700;font-size:92px">'+p.r+'</span><span style="font-weight:500;font-size:52px;color:rgb(215,215,220);margin-left:18px">'+p.b+'</span></div>';});
 if($("batters").innerHTML!==h)$("batters").innerHTML=h;
 if(s.inn2){text("tlab","TARGET");text("tval",String(s.target));}else{text("tlab","RUN RATE");text("tval",s.crr||"0.00");}
+var bk_=s.bowler&&PHOTOS?(s.bowler.pic+"|"+s.bowler.name):"",bp_=$("bowlph");if(bp_.dataset.k!==bk_){bp_.dataset.k=bk_;bp_.innerHTML=bk_?photo(s.bowler.pic,s.bowler.name,128,rgb(bw.c),"left:2560px;top:46px;"):"";}$("bname").style.left=$("bfig").style.left=bk_?"2716px":"2616px";
 if(s.bowler){text("bname",up(s.bowler.name));$("bfig").innerHTML=s.bowler.w+"-"+s.bowler.r+'<span style="font-weight:500;font-size:52px;color:rgb(215,225,245);margin-left:20px">'+esc(s.bowler.o)+'</span>';}
 // this over's balls
 var ov=s.balls, legal=ov.filter(function(b){return !/wd|nb/i.test(b)}).length, slots=ov.concat(new Array(Math.max(0,6-legal)).fill(null)).slice(0,8);
@@ -424,7 +426,7 @@ return {L:{pic:lo.pic,name:lo.name,bg:rgb(t.c),tag:"OUT",tagc:"red"},R:who?{pic:
 /* ---------- new batter card (NACL career batting) ---------- */
 function showNewBat(d){var t=d.team,p=d.stat,el=$("nbin"),bowl=d.kind==="BOWL";
 var bat=p?(p.bat||{car:p}):null,bw=p?p.bowl:null,src=bowl?bw:bat;
-var cols=bowl?[["MATCHES","m"],["WICKETS","wkts"],["ECONOMY","econ"],["AVERAGE","avg"],["BEST","bbf"]]:[["MATCHES","m"],["RUNS","runs"],["AVERAGE","avg"],["STRIKE RT","sr"],["BEST","hs"]];
+var cols=bowl?[["MATCHES","m"],["WICKETS","wkts"],["ECONOMY","econ"],["AVERAGE","avg"],["BEST","bbf"],["4W","w4"],["5W","w5"],["MAIDENS","md"]]:[["MATCHES","m"],["RUNS","runs"],["AVERAGE","avg"],["STRIKE RT","sr"],["BEST","hs"],["25s","c25"],["50s","c50"],["100s","c100"]];
 function row(lbl,o){if(!o)o={};return '<div class="rl">'+esc(lbl)+'</div>'+cols.map(function(c){var x=o[c[1]];return '<div class="v'+(x==null||x===""||x==="-"?' mut':'')+'">'+esc(x==null||x===""?"-":x)+'</div>';}).join("");}
 var rows=src?row("NACL CAREER",src.car)+row(STATS&&STATS.lastName?STATS.lastName:"LAST SEASON",src.last)+row(STATS&&STATS.seasonName?STATS.seasonName:"THIS SEASON",src.sea):"";
 var h='<div class="card"><div class="accent" style="background:'+rgb(t.c)+'"></div>'+photo(d.pic,d.name,220,rgb(t.c),"")+
