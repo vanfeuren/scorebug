@@ -482,7 +482,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp
 /* ---------- flyers ---------- */
 var FLY={FOUR:[[30,110,230],[10,34,92]],SIX:[[140,60,230],[70,16,70]],WICKET:[[225,35,50],[90,10,20]]};
 /* ---- colour themes (opt-in) ---- */
-var THEME=(Q.get("theme")||"").toLowerCase();
+var THEME=(Q.get("theme")||"slate").toLowerCase();
 (function(){try{
 var G=["222,176,64","246,200,60","246,196,40","240,190,40","236,176,30","242,194,48"],R=["215,30,45","225,35,50","225,40,55"],B=["60,160,255","120,200,255","34,86,196"];
 var TH={
