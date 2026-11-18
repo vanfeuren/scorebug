@@ -254,6 +254,11 @@ body.celon #win,body.celon #fh{opacity:0}
 
 /* ---- FOUR/SIX/WICKET: lower band, plate above-left of the photo, cartoon in the band ---- */
 #toon{position:absolute;left:430px;top:20px;width:530px;height:300px;pointer-events:none}
+#rrbox{position:absolute;left:3090px;top:200px;width:640px;height:62px;display:flex;align-items:center;justify-content:center;gap:46px;font-size:46px;font-weight:700;line-height:1;padding-top:4px;box-sizing:border-box;background:rgba(0,0,0,.30);box-shadow:inset 4px 0 0 rgb(222,176,64);white-space:nowrap}
+#rrbox b,#cbar .crate b{font-weight:600;color:rgb(222,176,64);margin-right:14px}
+#rrbox span,#cbar .crate span{font-variant-numeric:tabular-nums}
+#cbar .crate{padding:0 34px;gap:40px;font-size:50px;background:rgba(14,16,24,.88);border-left:4px solid rgb(222,176,64)}
+#cbar .crate:empty{display:none}
 </style>
 </head>
 <body>
@@ -278,7 +283,7 @@ body.celon #win,body.celon #fh{opacity:0}
 <div class="t" id="bfig" style="left:2616px;top:102px;font-weight:700;font-size:92px"></div>
 <div id="balltray"></div>
 <div id="balls"></div>
-<div class="t" id="tick" style="left:110px;width:3620px;text-align:center;top:212px;font-size:46px"></div>
+<div class="t" id="tick" style="left:110px;width:2980px;text-align:center;top:212px;font-size:46px"></div><div id="rrbox"></div>
 </div>
 <div id="fly">
 <div id="band" class="fpart"><div id="bandfill"></div>
@@ -292,7 +297,7 @@ body.celon #win,body.celon #fh{opacity:0}
 <div id="sub" class="fpart"><div id="plate"><div id="pph"></div><div><div id="l1"></div><div id="l2"></div></div></div></div>
 </div>
 <div id="bug"><div class="live"><i></i>LIVE</div><div class="ser" id="ser"></div></div>
-<div id="cbar"><div class="cteam" id="cteam"></div><div class="cbat" id="cbat"></div><div class="cbowl" id="cbowl"></div><div class="cballs" id="cballs"></div><div class="ceq" id="ceq"></div></div>
+<div id="cbar"><div class="cteam" id="cteam"></div><div class="cbat" id="cbat"></div><div class="cbowl" id="cbowl"></div><div class="cballs" id="cballs"></div><div class="crate" id="crate"></div><div class="ceq" id="ceq"></div></div>
 <div id="wait"><div class="wsh"></div><div class="wl"><div class="wk">STARTING SOON<span class="wdot"></span></div><div class="wm">WAITING FOR SCORING TO START</div></div><div class="wg"><div class="wgl">START</div><div class="wgv" id="wtime">SOON</div></div><div class="wr"><div class="wt" id="wteams"></div></div><div class="wtk" id="wtick"></div></div>
 <div id="cel"><div id="celin"></div></div>
 <div id="op"><div id="opin"></div></div>
@@ -452,7 +457,7 @@ var nmL=(p.name||"").length+(striker===p.id?2:0), fs=Math.min(50,Math.floor(tw/(
 h+='<div class="t" style="left:'+tx+'px;width:'+tw+'px;text-align:center;top:'+(40+Math.round((50-fs)*0.7))+'px;font-weight:600;font-size:'+fs+'px">'+(striker===p.id?'<span style="color:rgb(120,200,255);font-weight:700;font-size:56px;margin-right:10px">&rsaquo;</span>':'')+esc(up(p.name))+'</div>';
 h+='<div class="t" style="left:'+tx+'px;width:'+tw+'px;text-align:center;top:96px"><span style="font-weight:700;font-size:92px">'+p.r+'</span><span style="font-weight:500;font-size:52px;color:rgb(215,215,220);margin-left:18px">'+p.b+'</span></div>';});
 if($("batters").innerHTML!==h)$("batters").innerHTML=h;
-var pj_=0;try{var pb_=obls(s.ov);pj_=(cfgOn("proj")&&!s.inn2&&s.tot&&pb_>=12&&pb_<s.tot*6&&s.wk<10)?Math.round(s.runs+s.runs/pb_*(s.tot*6-pb_)):0;$("tlab").style.fontSize=pj_?"42px":"46px";$("tlab").style.top=pj_?"46px":"44px";}catch(e_){pj_=0;}
+var pj_=0;try{var pb_=obls(s.ov);pj_=(cfgOn("proj")&&!s.inn2&&s.tot&&pb_>=6&&pb_<s.tot*6&&s.wk<10)?Math.round(s.runs+s.runs/pb_*(s.tot*6-pb_)):0;$("tlab").style.fontSize=pj_?"42px":"46px";$("tlab").style.top=pj_?"46px":"44px";}catch(e_){pj_=0;}
 if(s.inn2){text("tlab","TARGET");text("tval",String(s.target));}else if(pj_){text("tlab","PROJECTED SCORE");text("tval",String(pj_));}else{text("tlab","RUN RATE");text("tval",s.crr||"0.00");}
 try{var bk_=s.bowler&&PHOTOS?(s.bowler.pic+"|"+s.bowler.name):"",bp_=$("bowlph");if(bp_.dataset.k!==bk_){bp_.dataset.k=bk_;bp_.innerHTML=bk_?photo(s.bowler.pic,s.bowler.name,128,rgb(bw.c),"left:2560px;top:46px;"):"";}$("bname").style.left=$("bfig").style.left=bk_?"2716px":"2616px";}catch(e_){}
 if(s.bowler){text("bname",up(s.bowler.name));$("bfig").innerHTML=s.bowler.w+"-"+s.bowler.r+'<span style="font-weight:500;font-size:52px;color:rgb(215,225,245);margin-left:20px">'+esc(s.bowler.o)+'</span>';}
@@ -466,18 +471,21 @@ if($("balls").innerHTML!==bh)$("balls").innerHTML=bh;
 var m=[];
 if(s.ended&&s.result)m.push(s.result.replace(" WON ","  WON "));
 else{
-if(s.inn2)m.push(s.bat+"  NEED "+s.need+" RUNS FROM "+s.bl+" BALLS  \u00b7  REQUIRED RATE "+s.rrr);
-else m.push(s.bat+" v "+s.bowl+"  \u00b7  FIRST INNINGS  \u00b7  RUN RATE "+(s.crr||"0.00"));
+if(s.inn2)m.push(s.bat+"  NEED "+s.need+" RUNS FROM "+s.bl+" BALLS");
+else m.push(s.bat+" v "+s.bowl+"  \u00b7  FIRST INNINGS");
 if(s.part&&num(s.part.b)>0)m.push("PARTNERSHIP  "+s.part.r+" RUNS OFF "+s.part.b+" BALLS");
 if(s.wk>0&&s.lastOut.name)m.push("LAST WICKET  "+up(s.lastOut.name)+" "+s.lastOut.r+" ("+s.lastOut.b+")  \u00b7  "+how(s.lastOut.how));
-if(s.inn2)m.push("CURRENT RUN RATE  "+(s.crr||"-")+"  \u00b7  REQUIRED RATE "+s.rrr);
-else if(s.toss)m.push("TOSS  "+s.toss);
+if(!s.inn2&&s.toss)m.push("TOSS  "+s.toss);
 }
 m=TVX.ticker(s,m);msgs=m;if(!tickTimer)runTick();else if(tickI%msgs.length===0)showTick(true);
+try{rrUpd(s)}catch(e_){}
 drawCompact(s,bt,bw);
 $("bar").classList.add("on");
 TVX.decor(s);TVX.cards(s);
 }
+function rrUpd(s){var b=obls(s.ov),r=num(s.runs),crr=b>0?(r*6/b).toFixed(2):"0.00",h='<div><b>CRR</b><span>'+crr+'</span></div>';
+ if(s.inn2&&!s.ended){var nd=Math.max(0,num(s.need)),bl=num(s.bl);var rrr=nd<=0?"0.00":bl>0?(nd*6/bl).toFixed(2):"-";h+='<div><b>RRR</b><span>'+rrr+'</span></div>';}
+ if($("rrbox").innerHTML!==h)$("rrbox").innerHTML=h;var c=$("crate");if(c&&c.innerHTML!==h)c.innerHTML=h;}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]});}
 /* ---------- flyers ---------- */
 var FLY={FOUR:[[30,110,230],[10,34,92]],SIX:[[140,60,230],[70,16,70]],WICKET:[[225,35,50],[90,10,20]]};
