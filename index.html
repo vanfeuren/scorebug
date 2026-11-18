@@ -259,6 +259,11 @@ body.celon #win,body.celon #fh{opacity:0}
 #rrbox span,#cbar .crate span{font-variant-numeric:tabular-nums}
 #cbar .crate{padding:0 34px;gap:40px;font-size:50px;background:rgba(14,16,24,.88);border-left:4px solid rgb(222,176,64)}
 #cbar .crate:empty{display:none}
+#nbin .card.g4 .grid,#opin .card.g4 .grid{top:22px;row-gap:7px}
+.card.g4 .grid .v{font-size:46px!important;padding:9px 0 4px!important}
+.card.g4 .grid .rl{font-size:30px!important}
+.card.g4 .grid .rl:nth-last-of-type(9){color:#fff!important;font-size:30px!important;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+.card.g4 .grid .v:nth-last-child(-n+8){background:rgba(222,176,64,.16)}
 </style>
 </head>
 <body>
@@ -572,8 +577,8 @@ function showNewBat(d){placeNB(d.kind==="BOWL"?CFG.nbowl.loc:CFG.nbat.loc);var t
 var bat=p?(p.bat||{car:p}):null,bw=p?p.bowl:null,src=bowl?bw:bat;
 var cols=bowl?[["MATCHES","m"],["WICKETS","wkts"],["ECONOMY","econ"],["AVERAGE","avg"],["BEST","bbf"],["4W","w4"],["5W","w5"],["MAIDENS","md"]]:[["MATCHES","m"],["RUNS","runs"],["AVERAGE","avg"],["STRIKE RT","sr"],["BEST","hs"],["25s","c25"],["50s","c50"],["100s","c100"]];
 function row(lbl,o){if(!o)o={};return '<div class="rl">'+esc(lbl)+'</div>'+cols.map(function(c){var x=o[c[1]];return '<div class="v'+(x==null||x===""||x==="-"?' mut':'')+'">'+esc(x==null||x===""?"-":x)+'</div>';}).join("");}
-var rows=src?row("NACL CAREER",src.car)+row(STATS&&STATS.lastName?STATS.lastName:"LAST SEASON",src.last)+row(STATS&&STATS.seasonName?STATS.seasonName:"THIS SEASON",src.sea):"";
-var h='<div class="card'+(rows?'':' ns')+'"><div class="accent" style="background:'+rgb(t.c)+'"></div>'+photo(d.pic,d.name,220,rgb(t.c),"")+
+var rows=src?row("NACL CAREER",src.car)+row(STATS&&STATS.lastName?STATS.lastName:"LAST SEASON",src.last)+row(STATS&&STATS.seasonName?STATS.seasonName:"THIS SEASON",src.sea):"";var vsr="";try{if(src&&p&&p.vs&&cfgOn("vs")){var S_=window.__lastS||{},on_=d.opp||Q.get("vsopp")||(S_.bat&&S_.bowl?(up(d.teamName||"")===up(S_.bat)?S_.bowl:S_.bat):"");var vk_=String(on_||"").toUpperCase().replace(/\s*\(CA\)/,"").replace(/[^A-Z0-9]/g,""),ve_=vk_&&p.vs[vk_];ve_=ve_&&(bowl?ve_.bowl:ve_.bat);if(ve_){var lb_=up(on_).replace(/\s*\(CA\)/,"").replace(/CRICKET CLUB/,"CC").replace(/\s+/g," ").trim();vsr=row("VS "+lb_,ve_);if(lb_.length>11)vsr=vsr.replace("<div class=\"rl\">","<div class=\"rl\" style=\"font-size:"+Math.max(20,Math.round(30*14/(lb_.length+3)))+"px!important\">");rows+=vsr;}}}catch(e_){vsr="";}
+var h='<div class="card'+(rows?'':' ns')+(vsr?' g4':'')+'"><div class="accent" style="background:'+rgb(t.c)+'"></div>'+photo(d.pic,d.name,220,rgb(t.c),"")+
 '<div class="tag'+(bowl?' bowl':'')+'">'+(d.tag||(bowl?'NEW BOWLER':'NEW BATTER'))+'</div><div class="nm">'+esc(up(d.name))+'</div>'+
 '<div class="tmr">'+(d.logo?'<div class="lg"><img src="'+esc(d.logo)+'" alt=""></div>':'')+'<div class="tm">'+esc(d.teamName)+'</div></div>'+
 (rows?'<div class="grid"><div></div>'+cols.map(function(c){return '<div class="h">'+c[0]+'</div>'}).join("")+rows+'</div>':'')+'</div>';
