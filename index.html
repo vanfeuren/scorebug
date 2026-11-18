@@ -509,6 +509,47 @@ TVX.decor(s);TVX.cards(s);
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]});}
 /* ---------- flyers ---------- */
 var FLY={FOUR:[[30,110,230],[10,34,92]],SIX:[[140,60,230],[70,16,70]],WICKET:[[225,35,50],[90,10,20]]};
+/* ---- colour themes (opt-in) ---- */
+var THEME=(Q.get("theme")||"").toLowerCase();
+(function(){try{
+var G=["222,176,64","246,200,60","246,196,40","240,190,40","236,176,30","242,194,48"],R=["215,30,45","225,35,50","225,40,55"],B=["60,160,255","120,200,255","34,86,196"];
+var TH={
+muted:{sat:.55,dk:.82,gold:[200,172,110],red:[176,50,58],blue:[110,150,196],bat:[[34,34,38],[60,54,48]],
+ fly:{FOUR:[[58,96,146],[22,34,60]],SIX:[[100,78,136],[44,28,56]],WICKET:[[158,52,60],[58,20,26]]},misc:{"246,140,30":"204,142,80","206,46,190":"150,84,140","22,176,92":"64,146,100"}},
+slate:{tint:[32,36,44],k:.74,gold:[190,170,128],red:[160,58,62],blue:[120,146,176],bat:[[28,31,38],[44,48,56]],dark:1,
+ fly:{FOUR:[[62,82,110],[26,30,38]],SIX:[[84,76,104],[28,28,36]],WICKET:[[128,58,62],[36,24,26]]},misc:{"246,140,30":"184,138,92","206,46,190":"132,96,128","22,176,92":"84,136,108"}},
+navy:{tint:[18,32,60],k:.80,gold:[176,200,228],red:[172,50,62],blue:[120,166,220],bat:[[14,24,46],[26,42,74]],dark:1,
+ fly:{FOUR:[[36,76,140],[12,22,44]],SIX:[[56,64,130],[16,20,46]],WICKET:[[146,44,58],[32,14,26]]},misc:{"246,140,30":"196,146,96","206,46,190":"140,100,170","22,176,92":"70,150,130"}}
+};
+var t=TH[THEME];if(!t)return;
+function cl(x){return Math.max(0,Math.min(255,Math.round(x)))}
+function tone(a){if(!a)return a;var r=a[0],g=a[1],b=a[2];
+ if(t.tint){r=r*(1-t.k)+t.tint[0]*t.k;g=g*(1-t.k)+t.tint[1]*t.k;b=b*(1-t.k)+t.tint[2]*t.k;}
+ else{var y=(r+g+b)/3;r=(r+(y-r)*t.sat)*t.dk;g=(g+(y-g)*t.sat)*t.dk;b=(b+(y-b)*t.sat)*t.dk;}
+ a[0]=cl(r);a[1]=cl(g);a[2]=cl(b);return a;}
+function tm(o){["c","b0","b1"].forEach(function(k){tone(o[k])});if(t.tint)o.acc=t.gold.slice();else tone(o.acc);
+ if(t.tint){o.b1=o.b1.map(function(v,i){return cl(v+([14,16,20])[i])})}}
+Object.keys(KNOWN).forEach(function(k){tm(KNOWN[k])});PAL.forEach(tm);
+FLY.FOUR=t.fly.FOUR;FLY.SIX=t.fly.SIX;FLY.WICKET=t.fly.WICKET;
+var M={},gs=t.gold.join(","),gd=t.gold.map(function(v){return cl(v*.92)}).join(",");
+G.forEach(function(k,i){M[k]=i===4?gd:gs});R.forEach(function(k){M[k]=t.red.join(",")});B.forEach(function(k){M[k]=t.blue.join(",")});
+for(var k in t.misc)M[k]=t.misc[k];
+M["30,30,34"]=t.bat[0].join(",");M["66,56,46"]=t.bat[1].join(",");
+var RX=/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g;
+function fx(s){return s.indexOf("rgb(")<0?s:s.replace(RX,function(m,a,b,c){var v=M[a+","+b+","+c];return v?"rgb("+v+")":m;});}
+window.__thfx=fx;
+Array.prototype.forEach.call(document.querySelectorAll("style"),function(st){st.textContent=fx(st.textContent)});
+document.body.classList.add("th-"+THEME);if(t.dark)document.body.classList.add("thdark");
+var css="body.thdark #tgt{background:linear-gradient(90deg,rgb("+t.bat[1]+"),rgb("+t.bat[0]+"))!important;box-shadow:inset 0 10px 0 rgb("+gs+")}"+
+"body.thdark #tlab,body.thdark #tval{color:rgb("+gs+")!important}"+
+"body.thdark .big .tag.gold,body.thdark #fsin .gold{color:rgb(16,18,24)}";
+var el=document.createElement("style");el.textContent=css;document.head.appendChild(el);
+function sty(n){if(n.nodeType!==1)return;var s=n.getAttribute("style");if(s&&s.indexOf("rgb(")>=0){var f=fx(s);if(f!==s)n.setAttribute("style",f);}
+ var q=n.querySelectorAll?n.querySelectorAll("[style]"):[];for(var i=0;i<q.length;i++){var s2=q[i].getAttribute("style");if(s2&&s2.indexOf("rgb(")>=0){var f2=fx(s2);if(f2!==s2)q[i].setAttribute("style",f2);}}}
+new MutationObserver(function(ms){try{ms.forEach(function(m){if(m.type==="attributes")sty(m.target);else m.addedNodes.forEach(sty);})}catch(e){}})
+ .observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["style"]});
+}catch(e){try{console.log("theme",e)}catch(_){}}})();
+
 var queue=[],busy=false;
 function flyer(kind,l1,l2,opt){if(!flyOn(kind))return;queue.push([kind,l1,l2,opt||{}]);if(!busy)next();}
 function next(){try{next0_();}catch(e_){try{console.warn("TV extra failed:",e_);}catch(_){}busy=false;setTimeout(next,200);}}
