@@ -334,7 +334,13 @@ function nkey(n){n=norm(n).split(" ");return n.length?n[0]+" "+(n.length>1?n[n.l
 function findPlayer(name){if(!STATS||!name)return null;var k=nkey(name),hit=null,c=0;for(var id in STATS.players){var p=STATS.players[id];if(nkey(p.name)===k||nkey(p.full||"")===k){hit=p;c++;}}return c===1?hit:null;}
 function statFor(id,name){if(!STATS)return null;var p=STATS.players[String(id)];if(p)return p;var n=norm(name);for(var k in STATS.players){if(norm(STATS.players[k].name)===n)return STATS.players[k];}return null;}
 /* ---------- scaling: the 3840x2160 stage fits the page ---------- */
-function fit(){var s=Math.min(innerWidth/3840,innerHeight/2160);var st=$("stage");st.style.transform="scale("+s+")";st.style.left=((innerWidth-3840*s)/2)+"px";st.style.top=((innerHeight-2160*s))+"px";}
+var CRISP=Q.get("crisp")==="1";
+function fit(){var s=Math.min(innerWidth/3840,innerHeight/2160);var st=$("stage");
+if(CRISP&&("zoom" in st.style)){st.style.transform="none";st.style.zoom=s;st.style.left=((innerWidth-3840*s)/2/s)+"px";st.style.top=((innerHeight-2160*s)/s)+"px";}
+else{st.style.transform="scale("+s+")";st.style.left=((innerWidth-3840*s)/2)+"px";st.style.top=((innerHeight-2160*s))+"px";}
+try{if(Q.get("info")==="1"){var b=document.getElementById("dbginfo");if(!b){b=document.createElement("div");b.id="dbginfo";b.style.cssText="position:fixed;left:2%;top:3%;z-index:99999;background:rgba(0,0,0,.82);color:#fff;font:600 "+Math.max(12,Math.round(innerHeight/38))+"px/1.35 -apple-system,system-ui,sans-serif;padding:.6em .9em;border-radius:.5em;border:2px solid #fff";document.documentElement.appendChild(b);}
+var fs=Math.max(12,Math.round(innerHeight/38));
+b.innerHTML="WIDGET SIZE: "+innerWidth+" × "+innerHeight+"<br>PIXEL RATIO: "+(window.devicePixelRatio||1)+"<br>DRAWN AT: "+Math.round(innerWidth*(window.devicePixelRatio||1))+" × "+Math.round(innerHeight*(window.devicePixelRatio||1))+" px<br>OVERLAY SCALE: "+s.toFixed(3)+(CRISP?" (crisp)":" (normal)")+"<br><span style='font-size:"+Math.round(fs*.55)+"px'>small text sharpness test 0123456789</span><br><span style='display:inline-block;width:"+(fs*8)+"px;height:"+Math.round(fs*.8)+"px;background:repeating-linear-gradient(90deg,#fff 0 1px,#000 1px 2px)'></span>";}}catch(e_){}}
 addEventListener("resize",fit);fit();
 if(Q.get("bg")){document.body.classList.add("bgimg");document.body.style.backgroundImage="url("+Q.get("bg")+")";}
 /* ---------- team colours ---------- */
