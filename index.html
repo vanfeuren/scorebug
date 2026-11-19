@@ -492,21 +492,21 @@ if($("balls").innerHTML!==bh)$("balls").innerHTML=bh;
 var m=[];
 if(s.ended&&s.result)m.push(s.result.replace(" WON ","  WON "));
 else{
-if(s.inn2)m.push(s.bat+"  NEED "+s.need+" RUNS FROM "+s.bl+" BALLS");
-else m.push(s.bat+" v "+s.bowl+"  \u00b7  FIRST INNINGS");
+var sit_=s.inn2?s.bat+"  NEED "+s.need+" RUNS FROM "+s.bl+" BALLS":s.bat+" v "+s.bowl+"  \u00b7  FIRST INNINGS";
 if(s.part&&num(s.part.b)>0)m.push("PARTNERSHIP  "+s.part.r+" RUNS OFF "+s.part.b+" BALLS");
 if(s.wk>0&&s.lastOut.name)m.push("LAST WICKET  "+up(s.lastOut.name)+" "+s.lastOut.r+" ("+s.lastOut.b+")  \u00b7  "+how(s.lastOut.how));
 if(!s.inn2&&s.toss)m.push("TOSS  "+s.toss);
 }
-m=TVX.ticker(s,m);msgs=m;TQ.update();
+m=TVX.ticker(s,m);if(!m.length&&sit_)m.push(sit_);msgs=m;TQ.update();
 try{rrUpd(s)}catch(e_){}
 drawCompact(s,bt,bw);
 $("bar").classList.add("on");
 TVX.decor(s);TVX.cards(s);
 }
 function rrUpd(s){var b=obls(s.ov),r=num(s.runs),crr=b>0?(r*6/b).toFixed(2):"0.00",h='<div><b>CRR</b><span>'+crr+'</span></div>';
- if(s.inn2&&!s.ended){var nd=Math.max(0,num(s.need)),bl=num(s.bl);var rrr=nd<=0?"0.00":bl>0?(nd*6/bl).toFixed(2):"-";h+='<div><b>RRR</b><span>'+rrr+'</span></div>';}
- if($("rrbox").innerHTML!==h)$("rrbox").innerHTML=h;var c=$("crate");if(c&&c.innerHTML!==h)c.innerHTML=h;}
+ var W_=640,hc_=h;if(s.inn2&&!s.ended){var nd=Math.max(0,num(s.need)),bl=num(s.bl);var rrr=nd<=0?"0.00":bl>0?(nd*6/bl).toFixed(2):"-";h='<div><b>NEED</b><span>'+nd+' OFF '+bl+'</span></div>'+h+'<div><b>RRR</b><span>'+rrr+'</span></div>';hc_=hc_+'<div><b>RRR</b><span>'+rrr+'</span></div>';W_=1080;}
+ var rb_=$("rrbox");if(rb_.__w!==W_){rb_.__w=W_;rb_.style.width=W_+"px";rb_.style.left=(3730-W_)+"px";$("tick").style.width=(3620-W_)+"px";}
+ if($("rrbox").innerHTML!==h)$("rrbox").innerHTML=h;var c=$("crate");if(c&&c.innerHTML!==hc_)c.innerHTML=hc_;}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]});}
 /* ---------- flyers ---------- */
 var FLY={FOUR:[[30,110,230],[10,34,92]],SIX:[[140,60,230],[70,16,70]],WICKET:[[225,35,50],[90,10,20]]};
