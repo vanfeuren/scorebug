@@ -652,7 +652,7 @@ function newBowler(s,tag){if(!USESTATS||!STATS||!s.bowler||!cfgOn("nbowl"))retur
 var nm=norm(s.bowler.name);if(bowledThisInn[nm])return;bowledThisInn[nm]=1;
 var p=findPlayer(s.bowler.name),t=team(s.bowlCode,s.bowl);if(!p||!p.bowl)return;
 queue.push(["NEWBAT",{kind:"BOWL",tag:tag,ms:cfgMs("nbowl",5),name:p.full||s.bowler.name,pic:s.bowler.pic||picUrl(p.pic),team:t,teamName:s.bowl,logo:s.bowlLogo,stat:p}]);if(!busy)next();}
-function newBatter(s,b){if(!USESTATS||!STATS||!cfgOn("nbat"))return;if(OP.k===opKey(s)&&OP.seen[b.id])return;var t=team(s.batCode,s.bat);var st=statFor(b.id,b.name);queue.push(["NEWBAT",{ms:cfgMs("nbat",10),name:(st&&st.full)||b.name,pic:b.pic||(st?picUrl(st.pic):""),team:t,teamName:s.bat,logo:s.batLogo,stat:st}]);if(!busy)next();}
+function newBatter(s,b,tag){if(!USESTATS||!STATS||!cfgOn("nbat"))return;if(OP.k===opKey(s)&&(OP.seen[b.id]||(OP.st===1&&obls(s.ov)===0&&s.wk===0)))return;var t=team(s.batCode,s.bat);var st=statFor(b.id,b.name);queue.push(["NEWBAT",{ms:cfgMs("nbat",10),tag:tag,name:(st&&st.full)||b.name,pic:b.pic||(st?picUrl(st.pic):""),team:t,teamName:s.bat,logo:s.batLogo,stat:st}]);if(!busy)next();}
 /* ---------- opening batters stay on screen until the opening bowler is picked ---------- */
 var OP={k:"",st:0,ids:"",t0:0,seen:{}};
 function opKey(s){return (s.inn2?"2":"1")+"_"+MATCH;}
@@ -664,8 +664,9 @@ var bats=s.batters.filter(function(b){return !b.out;}),pre=obls(s.ov)===0&&s.run
 if(OP.st===1&&!pre){opHide();OP.st=2;return;}
 if(!pre||OP.st===2||!bats.length)return;
 window.__opened=window.__opened||{};window.__opened["o"+(s.inn2?2:1)+MATCH]=1;
-var ids=bats.map(function(b){return b.id;}).join(",");
-if(ids!==OP.ids){OP.ids=ids;bats.forEach(function(b){OP.seen[b.id]=1;});
+var one=bats.filter(function(b){return striker&&b.id===striker;})[0]||bats[0];bats=[one];
+var ids=one.id;
+if(ids!==OP.ids){OP.ids=ids;OP.seen={};OP.seen[one.id]=1;
 var t=team(s.batCode,s.bat),h="";bats.slice(0,2).forEach(function(b,i){var st=statFor(b.id,b.name);
 h+='<div class="slot" style="top:'+(bats.length>1?i*400:400)+'px">'+showNewBat({ret:1,tag:"OPENING BATTER",name:(st&&st.full)||b.name,pic:b.pic||(st?picUrl(st.pic):""),team:t,teamName:s.bat,logo:s.batLogo,stat:st})+'</div>';});
 opPlace();var el=$("opin");el.innerHTML=h;[].forEach.call(el.querySelectorAll(".nm"),function(nm){if(nm.scrollWidth>600)nm.style.transform="scale("+(600/nm.scrollWidth)+")";});
@@ -679,6 +680,7 @@ if(!p||p.inn2!==s.inn2)return;
 var ok_="o"+(s.inn2?2:1)+MATCH;window.__opened=window.__opened||{};if(USESTATS&&STATS&&!window.__opened[ok_]&&obls(s.ov)>0&&obls(s.ov)<=3){window.__opened[ok_]=1;s.batters.forEach(function(b){if(!b.out)newBatter(s,b);});if(s.bowler)newBowler(s);}
 var byId={};p.batters.forEach(function(b){byId[b.id]=b});
 s.batters.forEach(function(b){var o=byId[b.id];if(o&&b.b!==o.b)striker=b.id;});
+try{if(OP.k===opKey(s)&&OP.st>=1)s.batters.forEach(function(b){var o=byId[b.id];if(o&&!b.out&&!OP.seen[b.id]&&o.b===0&&b.b>0&&p.wk===s.wk){newBatter(s,b,"OPENING BATTER");OP.seen[b.id]=1;}});}catch(e_){}
 var line2=s.bat+" "+s.runs+"/"+s.wk+"  ·  "+s.ov+" OV";
 s.batters.forEach(function(b){var o=byId[b.id];if(!o)return;
 var nm=up(b.name)+"   "+b.r+(b.out?"":"*")+" ("+b.b+")";
