@@ -302,6 +302,8 @@ body.th-slate #ostrip{background:linear-gradient(90deg,rgba(30,33,42,.96),rgba(4
 #ostrip .pcsr{margin-left:auto;display:flex;align-items:center;padding:0 16px;font-size:18px;background:rgba(222,176,64,.15)}
 body.oson #win{opacity:0!important}
 
+body.rec:not(.reclive) #bug .live i{display:none}
+body.rec #pcx .cd{display:none}
 </style>
 </head>
 <body>
@@ -483,7 +485,7 @@ function run(){clearTimeout(tickTimer);var t=pick(),d=TICKMS;if(t)d=show(t);tick
 function update(){var p=!!find("PRESSURE");
  if(p&&!lastPress){lastPress=true;clearTimeout(tickTimer);tickTimer=setTimeout(run,show(find("PRESSURE")));return;}
  lastPress=p;if(!tickTimer){run();return;}
- if(cur){var n=find(key(cur));if(n&&n!==cur&&key(cur)!=="OTHER MATCHES THIS WEEKEND"){cur=n;try{showTick(true,n,spec(n)[1]*1000);}catch(e_){}}}}
+ if(cur){var n=find(key(cur));if(!n&&key(cur)!=="OTHER MATCHES THIS WEEKEND"){cur=null;run();return;}if(n&&n!==cur&&key(cur)!=="OTHER MATCHES THIS WEEKEND"){cur=n;try{showTick(true,n,spec(n)[1]*1000);}catch(e_){}}}}
 window.__tq=function(){return {cyc:cyc,q:q.slice(),pos:pos,cur:cur&&key(cur)}};
 return {update:update};})();
 function runTick(){TQ.update();}
@@ -713,6 +715,7 @@ if(!q.length)done();else go();}catch(e){setTimeout(findMatch,60000);}}
 /* ---------- polling ---------- */
 var prev=null,fails=0;
 function poll(){
+if(Q.get("rec")==="1"){window.__push=function(j){handle(j);};try{document.body.classList.add("rec");if(Q.get("bugtxt")==="LIVE")document.body.classList.add("reclive");document.querySelector("#bug .live").lastChild.textContent=Q.get("bugtxt")||"4K UHD";}catch(e_){}return;}
 if(!MATCH){if(Q.get("team")){findMatch();return;}showMsg("Add ?matchId=NNNN to the link");return;}
 var u="https://cricclubs.com/liveScoreOverlayData.do?clubId="+encodeURIComponent(CLUB)+"&matchId="+encodeURIComponent(MATCH)+"&_="+Date.now();
 fetch(u,{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
@@ -1126,7 +1129,7 @@ x.ids.forEach(function(id,i){var p=pcP(id);if(!p)return;var b=pcCar(p,"bat"),w=p
 rows+='<tr><td class="l pcd" style="width:22px">'+(i+1)+'</td><td class="l" style="font-weight:600">'+pcE(up(p.full||p.name))+(r?' <span class="pctag">'+pcE(r)+'</span>':'')+'</td><td>'+pcE(b.m!=null?b.m:"-")+'</td><td>'+pcE(b.runs!=null?b.runs:"-")+'</td><td>'+pcE(b.hs||"-")+'</td><td>'+pcE(w.wkts!=null?w.wkts:"-")+'</td><td>'+pcE(w.bbf||"-")+'</td></tr>';});
 return '<div class="pcp" style="padding:10px 14px 8px"><div class="pch">'+pcLogo(t.logo,t.c,38)+'<span class="pcw" style="font-size:30px">'+pcE(t.n)+'</span><span class="pcg" style="margin-left:auto;font-size:15px;letter-spacing:1px">'+x.lab+'</span></div>'+
 '<table class="pct"><tr><th></th><th class="l">PLAYER</th><th>MAT</th><th>RUNS</th><th>HS</th><th>WKTS</th><th>BEST</th></tr>'+rows+'</table><div class="pcd" style="font-size:11px;margin-top:4px;letter-spacing:1px">CAREER  ·  '+pcE(up((STATS&&STATS.league)||"NACL"))+'</div></div>';}
-function pcDate(){try{return new Date().toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).toUpperCase().replace(/,/g,"");}catch(e){return "";}}
+function pcDate(){try{var qd=Q.get("date");return (qd?new Date(qd+"T12:00:00"):new Date()).toLocaleDateString("en-US",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).toUpperCase().replace(/,/g,"");}catch(e){return "";}}
 function pcOpen(s){if(!s.t1||!s.t1.n)return null;
 return '<div class="pcbg"></div>'+
 '<div class="pcg" style="position:absolute;top:18px;width:1280px;text-align:center;font-weight:600;font-size:20px;letter-spacing:4px">'+pcE(s.series||"LIVE CRICKET")+'</div>'+
@@ -1200,6 +1203,35 @@ function pstrip(d){var el=$("ostrip");if(!el)return;el.style.top=document.body.c
 el.innerHTML='<div class="pcstag">END OF OVER '+d.n+'</div><div class="pcsb">'+pcE(d.bw)+(d.fig?'<span class="pcg" style="margin-left:10px">'+pcE(d.fig)+'</span>':'')+'</div><div class="pcsc">'+d.balls.map(pcChip).join("")+'</div>'+
 '<div class="pcss">'+pcE(d.sum)+'</div><div class="pcsr">'+pcE(d.score)+'</div>';
 el.classList.remove("on");void el.offsetWidth;el.classList.add("on");document.body.classList.add("oson");clearTimeout(window.__osT);window.__osT=setTimeout(function(){el.classList.remove("on");document.body.classList.remove("oson");},d.ms||7000);}
+/* ---- recorded-video cards (post-match 4K video, highlights): replay intro, replay labels, player card ---- */
+function pcFlyRGB(k,i){try{return "rgb("+FLY[k][i||0].join(",")+")";}catch(e){return PG;}}
+function pcFace(pic,name,sz){return '<div class="pcmono" style="position:relative;overflow:hidden;width:'+sz+'px;height:'+sz+'px;font-size:'+Math.round(sz*.36)+'px">'+pcE(initials(name||""))+(pic&&PHOTOS?'<img src="'+pcE(pic)+'" onerror="this.remove()" style="position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover" alt="">':'')+'</div>';}
+function pcReplay(s,d){d=d||{};var k=up(d.kind||"REPLAY"),t=d.team||{};
+return '<div style="position:absolute;inset:0;background:rgba(4,6,16,.38)"></div>'+
+'<div class="pcband" style="left:-80px;width:1440px;top:196px;height:318px"></div>'+
+'<div style="position:absolute;left:0;width:1280px;top:196px;height:318px;background:linear-gradient(90deg,transparent,'+pcFlyRGB(k,0).replace("rgb","rgba").replace(")",",.30)")+' 50%,transparent)"></div>'+
+'<div style="position:absolute;top:214px;width:1280px;text-align:center"><span class="pctag" style="font-size:22px;letter-spacing:6px;padding:3px 18px">▶  INSTANT REPLAY</span></div>'+
+'<div class="pcw" style="position:absolute;top:252px;width:1280px;text-align:center;font-size:118px;line-height:1">'+pcE(k)+'</div>'+
+'<div style="position:absolute;top:376px;width:1280px;display:flex;justify-content:center;align-items:center;gap:16px">'+pcFace(d.pic,d.name,58)+pcLogo(t.logo,t.c,40)+'<span style="font-size:40px;font-weight:700">'+pcE(up(d.name||""))+'</span><span class="pcg" style="font-size:40px;font-weight:700">'+pcE(d.score||"")+'</span></div>'+
+'<div style="position:absolute;top:446px;width:1280px;text-align:center;font-size:21px;letter-spacing:2px">'+pcE(d.line1||"")+'</div>'+
+'<div class="pcg" style="position:absolute;top:475px;width:1280px;text-align:center;font-size:19px;letter-spacing:2px">'+pcE(d.line2||"")+'</div>';}
+function pcRlab(s,d){d=d||{};var caps="";
+if(d.split){var pw=(1280-8)/2;caps+='<div style="position:absolute;left:'+pw+'px;top:0;width:8px;height:720px;background:'+PG+'"></div>';[[0,"BATTER CAM"],[pw+8,"FULL VIEW"]].forEach(function(c){caps+='<div style="position:absolute;left:'+c[0]+'px;width:'+pw+'px;top:640px;text-align:center"><span class="pcp" style="padding:4px 18px;font-size:19px;font-weight:700;letter-spacing:3px;border-bottom:3px solid '+PG+'">'+c[1]+'</span></div>';});}
+else caps='<div style="position:absolute;left:0;width:1280px;top:640px;text-align:center"><span class="pcp" style="padding:4px 18px;font-size:19px;font-weight:700;letter-spacing:3px;border-bottom:3px solid '+PG+'">'+pcE(d.view||"SLOW MOTION")+'</span></div>';
+return '<div style="position:absolute;left:24px;top:22px;display:flex;box-shadow:0 4px 12px rgba(0,0,0,.4)"><div class="pctag" style="font-size:22px;letter-spacing:2px;padding:4px 14px;border-radius:0">▶ REPLAY</div><div class="pcp" style="font-size:21px;font-weight:600;padding:4px 16px;letter-spacing:1px">'+pcE(d.txt||"")+'</div></div>'+caps;}
+function pcPlayer(s,d){d=d||{};var p=pcP(String(d.id))||{},b=pcCar(p,"bat"),w=pcCar(p,"bowl"),tm=d.team||{},nm=p.full||p.name||d.name||"",pic=d.pic||(p.pic?picUrl(p.pic):"");
+var cell=function(a,v){return '<div style="flex:1;text-align:center;padding:8px 0;border-right:1px solid rgba(255,255,255,.08)"><div style="font-size:34px;font-weight:700;line-height:1">'+pcE(v==null||v===""?"-":v)+'</div><div class="pcg" style="font-size:14px;letter-spacing:1px;margin-top:4px">'+a+'</div></div>';};
+var rows=(d.today||[]).map(function(x){return '<div style="font-size:30px;font-weight:700;margin-top:6px"><span class="pcg" style="font-size:18px;letter-spacing:2px;margin-right:12px">'+pcE(x[0])+'</span>'+pcE(x[1])+'</div>';}).join("");
+return '<div class="pcbg"></div><div class="pcg" style="position:absolute;top:24px;width:1280px;text-align:center;font-weight:600;font-size:20px;letter-spacing:4px">'+pcE(d.title||"PLAYER HIGHLIGHTS")+'</div>'+
+'<div class="pcband" style="left:150px;width:980px;top:56px;height:74px"></div><div class="pcw pcfit" style="position:absolute;top:62px;left:170px;width:940px;text-align:center;font-size:56px;white-space:nowrap;overflow:hidden">'+pcE(up(nm))+'</div>'+
+'<div style="position:absolute;top:140px;width:1280px;text-align:center;font-size:19px;letter-spacing:2px">'+pcE(up(tm.n||p.team||""))+(d.match?'<span class="pcg">  ·  </span>'+pcE(d.match):'')+'</div>'+
+'<div class="pcp" style="position:absolute;left:120px;top:190px;width:1040px;height:430px;display:flex;gap:30px;padding:24px 30px">'+
+'<div style="flex:none;display:flex;flex-direction:column;align-items:center;gap:14px">'+pcFace(pic,nm,220)+pcLogo(tm.logo,tm.c,54)+'</div>'+
+'<div style="flex:1;min-width:0"><div class="pcg" style="font-size:17px;letter-spacing:3px">IN THIS MATCH</div>'+rows+
+'<div class="pcg" style="font-size:17px;letter-spacing:3px;margin-top:22px">CAREER  ·  '+pcE(up((STATS&&STATS.league)||"NACL"))+'</div>'+
+'<div style="display:flex;margin-top:6px;border-top:1px solid rgba(222,176,64,.5)">'+cell("MATCHES",b.m)+cell("RUNS",b.runs)+cell("AVG",b.avg)+cell("S/R",b.sr)+cell("HS",b.hs)+'</div>'+
+'<div style="display:flex;border-top:1px solid rgba(255,255,255,.08)">'+cell("WICKETS",w.wkts)+cell("ECON",w.econ)+cell("BOWL AVG",w.avg)+cell("BEST",w.bbf)+cell("",'')+'</div></div></div>';}
+var PCD={replay:pcReplay,rlab:pcRlab,player:pcPlayer};
 
 var CARDS={start:cardStart,"break":cardBreak,worm:cardWorm,bars:cardBars,result:cardResult,sc1:function(s){return cardResult(s)},sc2:function(s){return cardResult(s)}};
 var PCK={start:"start","break":"brk",worm:"worm",bars:"bars",result:"res",sc1:"res",sc2:"res"};
@@ -1208,8 +1240,12 @@ function lists(ph){var sh=Q.get("show");if(ph==="show")return [sh in CARDS?sh:"s
 function render(name){var s=lastS;if(!s)return;var h=null;if(PCN[name]&&Q.get("pc")!=="0"){try{h=PCN[name](s);}catch(e_){h=null;try{console.warn("pc card failed",e_)}catch(_){}}}
 if(h){$("pcx").innerHTML=h;pcFit();$("pcx").classList.add("on");document.body.classList.add("pcon");$("fs").classList.remove("on");document.body.classList.remove("fson");return;}
 try{$("pcx").classList.remove("on");document.body.classList.remove("pcon");}catch(e_){}if(!CARDS[name])return;$("fsin").innerHTML=CARDS[name](s);$("fs").classList.add("on");document.body.classList.add("fson");}
+var FORCED=false;
+function force(name,data){FORCED=true;clearTimeout(rotT);clearInterval(cdT);curPh="forced";document.body.classList.toggle("pre",name==="start");if(!name){fsOff();return;}var s=lastS,h=null;try{h=PCD[name]?PCD[name](s,data):(PCN[name]?PCN[name](s):null);}catch(e_){h=null;}
+if(h){$("pcx").innerHTML=h;pcFit();$("pcx").classList.add("on");document.body.classList.add("pcon");$("fs").classList.remove("on");document.body.classList.remove("fson");}else{fsOff();if(CARDS[name])render(name);}}
+function release(){FORCED=false;curPh="";document.body.classList.remove("pre");if(lastS)cards(lastS);}
 function rot(){clearTimeout(rotT);var l=lists(curPh);if(!l.length){fsOff();return;}var nm=l[rotI%l.length];render(nm);rotI++;if(l.length>1)rotT=setTimeout(rot,pcMs(nm));}
-function cards(s){lastS=s;var ph=phase(s);document.body.classList.toggle("pre",ph==="pre"||(ph==="show"&&Q.get("show")==="start"));
+function cards(s){lastS=s;if(FORCED)return;var ph=phase(s);document.body.classList.toggle("pre",ph==="pre"||(ph==="show"&&Q.get("show")==="start"));
 if(ph!==curPh){curPh=ph;rotI=0;clearInterval(cdT);clearTimeout(rotT);if(ph==="live"){fsOff();}else if(ph==="pre"||ph==="show")rot();else (function w(){if(busy||queue.length){rotT=setTimeout(w,500);return;}rotT=setTimeout(rot,1500);})();
 if(ph==="pre"||ph==="show")cdT=setInterval(function(){var e=document.getElementById("cd");if(e)e.textContent=cdText();},1000);}}
 /* ---- other matches this weekend (Div A and B only) ---- */
@@ -1307,10 +1343,10 @@ bowl("2285704","Deepak Padhi","3",0,10,5,["A Shenoy","S Jain","V Nagarajan","H S
 var only=Q.get("ev");if(only){var map={"25":0,"50":1,"100":2,"3":3,"4":4,"5":5};if(only in map)L=[L[map[only]]];}
 (function n(){L[i%L.length]();i++;(function wt(){if(busy||queue.length){setTimeout(wt,300);return;}setTimeout(n,2500);})();})();}}
 var API_={cel:celShow,celDemo:celDemo,update:function(p,s){setDiv(s);var ev=update(p,s);events(ev,s);},ticker:tickerExtra,decor:decor,cards:cards,lt:ltShow,
-strip:pstrip,reset:function(){H=blank();window.__opened={};try{opHide();OP={k:"",st:0,ids:"",t0:0,seen:{}};}catch(e_){}curPh="";clearTimeout(rotT);fsOff();},mem:function(){return H}};;
+strip:pstrip,force:force,release:release,reset:function(){H=blank();window.__opened={};try{opHide();OP={k:"",st:0,ids:"",t0:0,seen:{}};}catch(e_){}curPh="";clearTimeout(rotT);fsOff();},mem:function(){return H}};;
 /* every extra is fenced off: if one fails, the basic scorebar keeps updating */
 function safe_(f,fb){return function(){try{return f.apply(null,arguments);}catch(e){try{console.warn("TV extra failed:",e);}catch(_){}return typeof fb==="function"?fb.apply(null,arguments):fb;}};}
-return {update:safe_(API_.update),ticker:safe_(API_.ticker,function(s,m){return m;}),decor:safe_(API_.decor),cards:safe_(API_.cards),lt:safe_(API_.lt),cel:safe_(API_.cel),strip:safe_(API_.strip),celDemo:API_.celDemo,reset:safe_(API_.reset),mem:API_.mem};
+return {update:safe_(API_.update),ticker:safe_(API_.ticker,function(s,m){return m;}),decor:safe_(API_.decor),cards:safe_(API_.cards),lt:safe_(API_.lt),cel:safe_(API_.cel),strip:safe_(API_.strip),force:safe_(API_.force),release:safe_(API_.release),celDemo:API_.celDemo,reset:safe_(API_.reset),mem:API_.mem};
 })();
 /* ---------- demo=tv: a scripted mini-match that shows every TV feature ---------- */
 
